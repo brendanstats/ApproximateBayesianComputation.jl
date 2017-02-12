@@ -1,18 +1,28 @@
 """
+Type for Basic ABC Output
+"""
+type ABCResult{T <: Number, G <: Number}
+    particles::Union{Array{T, 1}, Array{T, 2}}
+    distances::Union{Array{G, 1}, Array{G, 2}}
+    threshold::Union{G, Array{G, 1}}
+    testedSamples::Int64
+end
+
+"""
 Internal ABC Function for dealing with 1D prior distributions
 """
-function abc_standard1D(summaryStatistics::Any,
+function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
                         N::Int64,
-                        threshold::Float64,
+                        threshold::G,
                         sample_prior::Function,
                         forward_model::Function,
                       compute_distance::Function)
-    acceptedDraws = Array{Float64}(N)
-    acceptedDistances = Array{Float64}(N)
+    acceptedDraws = Array{T}(N)
+    acceptedDistances = Array{G}(N)
     accepted = 0
-    totalSamples = 0
+    testedSamples = 0
     while accepted < N
-        totalSamples += 1
+        testedSamples += 1
         proposal = sample_prior()
         simulatedData = forward_model(proposal)
         proposalDistance = compute_distance(simulatedData, summaryStatistics)
@@ -22,21 +32,21 @@ function abc_standard1D(summaryStatistics::Any,
             acceptedDistances[accepted] = proposalDistance
         end
     end
-    return acceptedDraws, acceptedDistances, totalSamples
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
 
-function abc_standard1D(summaryStatistics::Any,
+function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
                         N::Int64,
-                        threshold::Array{Float64, 1},
+                        threshold::Array{G, 1},
                         sample_prior::Function,
                         forward_model::Function,
                         compute_distance::Function)
-    acceptedDraws = Array{Float64}(N)
-    acceptedDistances = Array{Float64}(N, length(threshold))
+    acceptedDraws = Array{T}(N)
+    acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    totalSamples = 0
+    testedSamples = 0
     while accepted < N
-        totalSamples += 1
+        testedSamples += 1
         proposal = sample_prior()
         simulatedData = forward_model(proposal)
         proposalDistance = compute_distance(simulatedData, summaryStatistics)
@@ -46,25 +56,25 @@ function abc_standard1D(summaryStatistics::Any,
             acceptedDistances[accepted, :] = proposalDistance
         end
     end
-    return acceptedDraws, acceptedDistances, totalSamples
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
 
 """
 Internal ABC Function for dealing with multi-dimentional prior distributions
 """
-function abc_standardMultiD(summaryStatistics::Any,
+function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
                             N::Int64,
                             d::Int64,
-                            threshold::Float64,
+                            threshold::G,
                             sample_prior::Function,
                             forward_model::Function,
                             compute_distance::Function)
-    acceptedDraws = Array{Float64}(N, d)
-    acceptedDistances = Array{Float64}(N)
+    acceptedDraws = Array{T}(N, d)
+    acceptedDistances = Array{G}(N)
     accepted = 0
-    totalSamples = 0
+    testedSamples = 0
     while accepted < N
-        totalSamples += 1
+        testedSamples += 1
         proposal = sample_prior()
         simulatedData = forward_model(proposal)
         proposalDistance = compute_distance(simulatedData, summaryStatistics)
@@ -74,22 +84,22 @@ function abc_standardMultiD(summaryStatistics::Any,
             acceptedDistances[accepted] = proposalDistance
         end
     end
-    return acceptedDraws, acceptedDistances, totalSamples
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
 
-function abc_standardMultiD(summaryStatistics::Any,
+function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
                             N::Int64,
                             d::Int64,
-                            threshold::Array{Float64, 1},
+                            threshold::Array{G, 1},
                             sample_prior::Function,
                             forward_model::Function,
                             compute_distance::Function)
-    acceptedDraws = Array{Float64}(N, d)
-    acceptedDistances = Array{Float64}(N, length(threshold))
+    acceptedDraws = Array{T}(N, d)
+    acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    totalSamples = 0
+    testedSamples = 0
     while accepted < N
-        totalSamples += 1
+        testedSamples += 1
         proposal = sample_prior()
         simulatedData = forward_model(proposal)
         proposalDistance = compute_distance(simulatedData, summaryStatistics)
@@ -99,7 +109,7 @@ function abc_standardMultiD(summaryStatistics::Any,
             acceptedDistances[accepted, :] = proposalDistance
         end
     end
-    return acceptedDraws, acceptedDistances, totalSamples
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
 
 """
@@ -124,30 +134,16 @@ the `forward_model` and the provided `summaryStatistics`. The call
 Returns an Array corresponding to an accepted parameter values and an Array of
 the associate distances.
 """
-function abc_standard(summaryStatistics::Any,
+function abc_standard{G <: Number}(summaryStatistics::Any,
                       N::Int64,
-                      threshold::Float64,
+                      threshold::Union{G, Array{G, 1}},
                       sample_prior::Function,
                       forward_model::Function,
                       compute_distance::Function)
     proposal = sample_prior()
     if typeof(proposal) <: Array
-        return abc_standardMultiD(summaryStatistics, N, length(proposal), threshold, sample_prior, forward_model, compute_distance)
+        return abc_standardMultiD(eltype(proposal), summaryStatistics, N, length(proposal), threshold, sample_prior, forward_model, compute_distance)
     else
-        return abc_standard1D(summaryStatistics, N, threshold, sample_prior, forward_model, compute_distance)
-    end
-end
-
-function abc_standard(summaryStatistics::Any,
-                      N::Int64,
-                      threshold::Array{Float64, 1},
-                      sample_prior::Function,
-                      forward_model::Function,
-                      compute_distance::Function)
-    proposal = sample_prior()
-    if typeof(proposal) <: Array
-        return abc_standardMultiD(summaryStatistics, N, length(proposal), threshold, sample_prior, forward_model, compute_distance)
-    else
-        return abc_standard1D(summaryStatistics, N, threshold, sample_prior, forward_model, compute_distance)
+        return abc_standard1D(typeof(proposal), summaryStatistics, N, threshold, sample_prior, forward_model, compute_distance)
     end
 end

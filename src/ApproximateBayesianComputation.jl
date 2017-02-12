@@ -10,7 +10,7 @@ module ApproximateBayesianComputation
 import StatsBase, Distributions
 
 export make_sample_prior, make_density_prior, make_model_prior
-export abc_standard
+export abc_standard, ABCResult
 
 include("make_prior_model.jl")
 include("abc_standard.jl")
