@@ -5,11 +5,11 @@ deviation on each set of particles individually
 `wstd(x, w)`
 `wstd(A, w)`
 """
-function wstd{A <: UnivariateAbcPmc}(abcpmc::A)
+function weightedstd{A <: UnivariateAbcPmc}(abcpmc::A)
     return std(abcpmc.particles, abcpmc.weights)
 end
 
-function wstd{A <: MultivariateAbcPmc}(abcpmc::A)
+function weightedstd{A <: MultivariateAbcPmc}(abcpmc::A)
     return vec(std(abcpmc.particles, abcpmc.weights, 1))
 end
 
@@ -27,10 +27,10 @@ case returns a vector of length d.
 # Value
 transition kernel variance, 2 * var(particles).  Calculated variance within particle types.
 """
-function wstd2{A <: UnivariateAbcPmc}(abcpmc::A)
+function weightedstd2{A <: UnivariateAbcPmc}(abcpmc::A)
     return sqrt(2) * std(abcpmc.particles, abcpmc.weights)
 end
 
-function wstd2{A <: MultivariateAbcPmc}(abcpmc::A)
+function weightedstd2{A <: MultivariateAbcPmc}(abcpmc::A)
     return sqrt(2) .* vec(std(abcpmc.particles, abcpmc.weights, 1))
 end
