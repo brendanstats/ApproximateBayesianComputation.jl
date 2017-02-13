@@ -80,3 +80,12 @@ AbcPmc{T <: Number, G <: Number}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.We
 function copy{A <: AbcPmcStep}(abcpmc::A)
     return AbcPmc(copy(abcpmc.particles), copy(abcpmc.distances), StatsBase.WeightVec(abcpmc.weights.values), copy(abcpmc.threshold), copy(abcpmc.testedSamples))
 end
+
+function StatsBase.sample{A <: UnivariateAbcPmc}(abcpmc::A)
+    return StatsBase.sample(abcpmc.particles, abcpmc.weights)
+end
+
+function StatsBase.sample{A <: MultivariateAbcPmc}(abcpmc::A)
+    row = StatsBase.sample(1:size(abcpmc.particles, 1), abcpmc.weights)
+    return abcpmc.particles[row, :]
+end
