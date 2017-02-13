@@ -28,7 +28,7 @@ function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{
         samplingDensity += (density_kernel.(newParticles, p, kernelsd) .* w)
     end
     priorDensity = density_prior.(newParticles)
-    newWeights = priorDensity ./ sampleDensity
+    newWeights = priorDensity ./ samplingDensity
     return StatsBase.WeightVec(newWeights ./ sum(newWeights))
 end
 
@@ -55,6 +55,153 @@ function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Arra
 end
 
 """
+Initialize ABC PMC Algorithm
+"""
+function pmc_start{G <: Number, T <: Number}(proposal::G, dist::T, summaryStatistics::Any,
+                                             numParticles::Int64, initialSample::Int64,
+                                             sample_prior::Function, compute_distance::Function,
+                                             forward_model::Function, rank_distances::Function,
+                                             verbose::Bool = true)
+
+    particles = Array{G}(initialSample)
+    distances = Array{T}(initialSample)
+    particles[1] = proposal
+    distances[1] = dist
+    
+    ##Calculate initial samples
+    if verbose println("Sampling Initial Particles and Computing Distances...") end
+    for ii in 2:initialSample
+        proposal = sample_prior()
+        simulatedData = forward_model(proposal)
+        particles[ii] = proposal
+        distances[ii] = compute_distance(simulatedData, summaryStatistics)
+    end
+    
+    ##Rank Particles
+    if verbose println("Selecting Particles...") end
+    ranks = rank_distances(distances)
+    sortedPermutation = sortperm(ranks)
+
+    ##Subset Particles
+    particles = particles[sortedPermutation[1:numParticles]]
+    distances = distances[sortedPermutation[1:numParticles]]
+
+    ##Return result
+    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
+    threshold = maximum(distances)
+    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
+    return AbcPmc(particles, distances, weights, threshold, testedSamples)
+end
+
+function pmc_start{G <: Number, T <: Number}(proposal::Array{G, 1}, dist::T, summaryStatistics::Any,
+                                             numParticles::Int64, initialSample::Int64,
+                                             sample_prior::Function, compute_distance::Function,
+                                             forward_model::Function, rank_distances::Function,
+                                             verbose::Bool = true)
+
+    particles = Array{G}(initialSample, length(proposal))
+    distances = Array{T}(initialSample)
+    particles[1, :] = proposal
+    distances[1] = dist
+    
+    ##Calculate initial samples
+    if verbose println("Sampling Initial Particles and Computing Distances...") end
+    for ii in 2:initialSample
+        proposal = sample_prior()
+        simulatedData = forward_model(proposal)
+        particles[ii, :] = proposal
+        distances[ii] = compute_distance(simulatedData, summaryStatistics)
+    end
+    
+    ##Rank Particles
+    if verbose println("Selecting Particles...") end
+    ranks = rank_distances(distances)
+    sortedPermutation = sortperm(ranks)
+
+    ##Subset Particles
+    particles = particles[sortedPermutation[1:numParticles], :]
+    distances = distances[sortedPermutation[1:numParticles]]
+
+    ##Return result
+    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
+    threshold = maximum(distances)
+    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
+    return AbcPmc(particles, distances, weights, threshold, testedSamples)
+end
+
+function pmc_start{G <: Number, T <: Number}(proposal::G, dist::Array{T, 1}, summaryStatistics::Any,
+                                             numParticles::Int64, initialSample::Int64,
+                                             sample_prior::Function, compute_distance::Function,
+                                             forward_model::Function, rank_distances::Function,
+                                             verbose::Bool = true)
+
+    particles = Array{G}(initialSample)
+    distances = Array{T}(initialSample, length(dist))
+    particles[1] = proposal
+    distances[1, :] = dist
+    
+    ##Calculate initial samples
+    if verbose println("Sampling Initial Particles and Computing Distances...") end
+    for ii in 2:initialSample
+        proposal = sample_prior()
+        simulatedData = forward_model(proposal)
+        particles[ii] = proposal
+        distances[ii, :] = compute_distance(simulatedData, summaryStatistics)
+    end
+    
+    ##Rank Particles
+    if verbose println("Selecting Particles...") end
+    ranks = rank_distances(distances)
+    sortedPermutation = sortperm(ranks)
+
+    ##Subset Particles
+    particles = particles[sortedPermutation[1:numParticles]]
+    distances = distances[sortedPermutation[1:numParticles], :]
+
+    ##Return result
+    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
+    threshold = maximum(distances, 1)
+    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
+    return AbcPmc(particles, distances, weights, threshold, testedSamples)
+end
+
+function pmc_start{G <: Number, T <: Number}(proposal::Array{G, 1}, dist::Array{T, 1}, summaryStatistics::Any,
+                                             numParticles::Int64, initialSample::Int64,
+                                             sample_prior::Function, compute_distance::Function,
+                                             forward_model::Function, rank_distances::Function,
+                                             verbose::Bool = true)
+
+    particles = Array{G}(initialSample, length(proposal))
+    distances = Array{T}(initialSample, length(dist))
+    particles[1, :] = proposal
+    distances[1, :] = dist
+    
+    ##Calculate initial samples
+    if verbose println("Sampling Initial Particles and Computing Distances...") end
+    for ii in 2:initialSample
+        proposal = sample_prior()
+        simulatedData = forward_model(proposal)
+        particles[ii, :] = proposal
+        distances[ii, :] = compute_distance(simulatedData, summaryStatistics)
+    end
+    
+    ##Rank Particles
+    if verbose println("Selecting Particles...") end
+    ranks = rank_distances(distances)
+    sortedPermutation = sortperm(ranks)
+
+    ##Subset Particles
+    particles = particles[sortedPermutation[1:numParticles], :]
+    distances = distances[sortedPermutation[1:numParticles], :]
+
+    ##Return result
+    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
+    threshold = maximum(distances, 1)
+    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
+    return AbcPmc(particles, distances, weights, threshold, testedSamples)
+end
+
+"""
 Function to new step in ABC Population Monte Carlo Algorithm
     
 # Arguments
@@ -74,11 +221,12 @@ ABCPMCStep object containing new posterior distribution, parameters and weights,
 as computed distances, total number of parameters sampled, and acceptance threshold that
 was used.
 """
-function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any,
-                                   kernel_sd::Function, shrink_threshold::Function,
-                                   sample_kernel::Function, forward_model::Function,
-                                   compute_distance::Function, density_kernel::Function,
-                                   density_prior::Function, verbose::Bool = true)
+function pmc_step(previousStep::USAbcPmc, summaryStatistics::Any, numParticles::Int64,
+                  kernel_sd::Function, shrink_threshold::Function,
+                  sample_kernel::Function, forward_model::Function,
+                  compute_distance::Function, density_kernel::Function,
+                  density_prior::Function, verbose::Bool = true)
+    
     #Allocate variables
     newParticles = zeros(previousStep.particles)
     newDistances = zeros(previousStep.distances)
@@ -94,6 +242,7 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any,
 
     #Find new particles
     if verbose println("Sampling Particles...") end
+    numAccepted = 0
     while numAccepted < numParticles
         testedSamples[numAccepted + 1] += 1
 
@@ -103,7 +252,154 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any,
 
         #Simulate data
         simulatedData = forward_model(proposal)
-        compute_distance(simulatedData, summaryStatistics)
+        proposalDistance = compute_distance(simulatedData, summaryStatistics)
+
+        #Accept / reject
+        if proposalDistance < threshold
+            numAccepted += 1
+            newParticles[numAccepted] = proposal
+            newDistances[numAccepted] = proposalDistance
+        end
+    end
+    
+    if verbose  println("Calculating Weights...") end
+    newWeights = kernel_weights(newParticles, previousStep, kernelsd,
+                                density_kernel, density_prior)
+    
+    #Return result as AbcPmcStep
+    return AbcPmc(newParticles, newDistances, newWeights, threshold, testedSamples)
+end
+
+function pmc_step(previousStep::UMAbcPmc, summaryStatistics::Any, numParticles::Int64,
+                  kernel_sd::Function, shrink_threshold::Function,
+                  sample_kernel::Function, forward_model::Function,
+                  compute_distance::Function, density_kernel::Function,
+                  density_prior::Function, verbose::Bool = true)
+    
+    #Allocate variables
+    newParticles = zeros(previousStep.particles)
+    newDistances = zeros(previousStep.distances)
+    testedSamples = zeros(previousStep.testedSamples)
+
+    #Compute kernel variance / std
+    if verbose println("Calculating Variance...") end
+    kernelsd = kernel_sd(previousStep)
+
+    #Compute new threshold
+    if verbose println("Calculating Threshold...") end
+    threshold = shrink_threshold(previousStep)
+
+    #Find new particles
+    if verbose println("Sampling Particles...") end
+    numAccepted = 0
+    while numAccepted < numParticles
+        testedSamples[numAccepted + 1] += 1
+
+        #Draw Sample
+        proposal = StatsBase.sample(previousStep)
+        proposal = sample_kernel(proposal, kernelsd)
+
+        #Simulate data
+        simulatedData = forward_model(proposal)
+        proposalDistance = compute_distance(simulatedData, summaryStatistics)
+
+        #Accept / reject
+        if all(proposalDistance .< threshold)
+            numAccepted += 1
+            newParticles[numAccepted] = proposal
+            newDistances[numAccepted, :] = proposalDistance
+        end
+    end
+    
+    if verbose  println("Calculating Weights...") end
+    newWeights = kernel_weights(newParticles, previousStep, kernelsd,
+                                density_kernel, density_prior)
+    
+    #Return result as AbcPmcStep
+    return AbcPmc(newParticles, newDistances, newWeights, threshold, testedSamples)
+end
+
+function pmc_step(previousStep::MSAbcPmc, summaryStatistics::Any, numParticles::Int64,
+                  kernel_sd::Function, shrink_threshold::Function,
+                  sample_kernel::Function, forward_model::Function,
+                  compute_distance::Function, density_kernel::Function,
+                  density_prior::Function, verbose::Bool = true)
+    
+    #Allocate variables
+    newParticles = zeros(previousStep.particles)
+    newDistances = zeros(previousStep.distances)
+    testedSamples = zeros(previousStep.testedSamples)
+
+    #Compute kernel variance / std
+    if verbose println("Calculating Variance...") end
+    kernelsd = kernel_sd(previousStep)
+
+    #Compute new threshold
+    if verbose println("Calculating Threshold...") end
+    threshold = shrink_threshold(previousStep)
+
+    #Find new particles
+    if verbose println("Sampling Particles...") end
+    numAccepted = 0
+    while numAccepted < numParticles
+        testedSamples[numAccepted + 1] += 1
+
+        #Draw Sample
+        proposal = StatsBase.sample(previousStep)
+        proposal = sample_kernel(proposal, kernelsd)
+
+        #Simulate data
+        simulatedData = forward_model(proposal)
+        proposalDistance = compute_distance(simulatedData, summaryStatistics)
+
+        #Accept / reject
+        if proposalDistance .< threshold
+            numAccepted += 1
+            newParticles[numAccepted, :] = proposal
+            newDistances[numAccepted] = proposalDistance
+        end
+    end
+    
+    if verbose  println("Calculating Weights...") end
+    newWeights = kernel_weights(newParticles, previousStep, kernelsd,
+                                density_kernel, density_prior)
+    
+    #Return result as AbcPmcStep
+    return AbcPmc(newParticles, newDistances, newWeights, threshold, testedSamples)
+end
+
+function pmc_step(previousStep::MMAbcPmc, summaryStatistics::Any, numParticles::Int64,
+                  kernel_sd::Function, shrink_threshold::Function,
+                  sample_kernel::Function, forward_model::Function,
+                  compute_distance::Function, density_kernel::Function,
+                  density_prior::Function, verbose::Bool = true)
+    
+    #Allocate variables
+    newParticles = zeros(previousStep.particles)
+    newDistances = zeros(previousStep.distances)
+    testedSamples = zeros(previousStep.testedSamples)
+
+    #Compute kernel variance / std
+    if verbose println("Calculating Variance...") end
+    kernelsd = kernel_sd(previousStep)
+
+    #Compute new threshold
+    if verbose println("Calculating Threshold...") end
+    threshold = shrink_threshold(previousStep)
+
+    #Find new particles
+    if verbose println("Sampling Particles...") end
+    numAccepted = 0
+    while numAccepted < numParticles
+        testedSamples[numAccepted + 1] += 1
+
+        #Draw Sample
+        proposal = StatsBase.sample(previousStep)
+        proposal = sample_kernel(proposal, kernelsd)
+
+        #Simulate data
+        simulatedData = forward_model(proposal)
+        proposalDistance = compute_distance(simulatedData, summaryStatistics)
 
         #Accept / reject
         if all(proposalDistance .< threshold) #depends on type
@@ -171,47 +467,15 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
         close(logfile)
     end
 
-    ##Determine types for particles and distances
-    sampleDraw = sample_prior()
-    if ndims(sampleDraw) == 0
-        particles = Array{eltype(sampleDraw)}(initialSample)
-    elseif ndims(sampleDraw) == 1
-        particles = Array{eltype(sampleDraw)}(initialSample, length(sampleDraw))
-    else
-        error("sample_prior() should produce scalar or vector output")
-    end
-
-    sampleData = forward_model(sampleDraw)
-    sampleDistance = compute_distance(sampleData, summaryStatistics)
-    if ndims(sampleDistance) == 0
-        distances = Array{typeof(sampleDistance)}(initialSample)
-    elseif ndims(sampleDistance) == 1
-        distances = Array{typeof(sampleDistance)}(initialSample, length(sampleDistane))
-    else
-        error("compute_distance should produce scalar or vector output")
-    end
-    particles[1, :] = sampleDraw
-    distances[1, :] = sampleDistance
-    
-    ##Calculate initial samples
-    if verbose println("Sampling Initial Particles and Computing Distances...") end
-    for ii in 2:initialSample
-        proposal = sample_prior()
-        simulatedData = forward_model(proposal)
-        particles[ii, :] = proposal
-        distances[ii, :] = compute_distance(simulatedData, summaryStatistics)
-    end
-    
-    ##Determine particles to accept
-    if verbose println("Selecting Particles...") end
-    ranks = rank_distances(distances)
-    sortedPermutation = sortperm(ranks)
-    particles = particles[sortedPermutation[1:numParticles], :]
-    distances = distances[sortedPermutation[1:numParticles], :]
-    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
-    threshold = maximum(distances, 1)
-    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
-    results = Dict(1 => AbcPmc(particles, distances, weights, threshold, testedSamples))
+    ##Run first step
+    proposal = sample_prior()
+    simulatedData = forward_model(proposal)
+    dist = compute_distance(simulatedData, summaryStatistics)
+    results = Dict(1 => pmc_start(proposal, dist, summaryStatistics,
+                                               numParticles, initialSample,
+                                               sample_prior, compute_distance,
+                                               forward_model, rank_distances,
+                                               verbose))
     
     ##Save results
     if verbose println("Saving Step...") end
@@ -223,12 +487,12 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
     stepTime = now() - startTime
     totalTime = stepTime
     if log
-        logfile = open(logFile, "a")
+        logfile = open(logFile, "w")
         write(logfile, string("Step 1 Info\n"))
         write(logfile, "————————————————————","\n")
         write(logfile, string("Total Time: ", duration_to_string(totalTime)))
         write(logfile, string("Step Time: ", duration_to_string(totalTime)))
-        write(logfile, string("Threshold: ", threshold, "\n"))
+        write(logfile, string("Threshold: ", results[1].threshold, "\n"))
         write(logfile, string("Particles Tested: ", initialSample, "\n"))
         write(logfile, "————————————————————","\n\n")
         close(logfile)
@@ -236,7 +500,7 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
 
     #Subsequent steps
     for ii in 2:nsteps
-              results[ii] = pmc_step(results[ii - 1], summaryStatistics,
+              results[ii] = pmc_step(results[ii - 1], summaryStatistics, numParticles,
                                      kernel_sd, shrink_threshold,
                                      sample_kernel, forward_model,
                                      compute_distance, density_kernel,
@@ -254,9 +518,9 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
             write(logfile, string("Step ", ii, " Info\n"))
             write(logfile, "————————————————————","\n")
             write(logfile,string("Total Time: ", duration_to_string(totalTime)))
-            write(logfile,string("Step Time: ", duration_to_string(totalTime)))
-            write(file, string("Threshold: ", results[string("Step",ii)].threshold, "\n"))
-            write(file, string("Particles Tested: ", results[string("Step",ii)].ntested, "\n"))
+            write(logfile,string("Step Time: ", duration_to_string(stepTime)))
+            write(logfile, string("Threshold: ", results[ii].threshold, "\n"))
+            write(logfile, string("Particles Tested: ", results[ii].testedSamples, "\n"))
             write(logfile, "————————————————————","\n\n")
             close(logfile)
         end

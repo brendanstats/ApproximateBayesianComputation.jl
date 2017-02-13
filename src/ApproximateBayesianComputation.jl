@@ -37,7 +37,7 @@ export quantile_threshold, independentquantile_threshold, jointquantile_threshol
 export duration_to_string
 
 export abc_standard, ABCResult
-export kernel_weights, pmc_step, abc_pmc
+export kernel_weights, pmc_start, pmc_step, abc_pmc
 
 include("make_prior_model.jl")
 include("make_kernel_model.jl")
