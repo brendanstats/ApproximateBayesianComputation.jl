@@ -76,3 +76,7 @@ AbcPmc{T <: Number, G <: Number}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.We
 #typeof(AbcPmc(randn(10, 2), rand(10), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), 0.5, fill(5, 10)))
 #typeof(AbcPmc(randn(10), rand(10, 2), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), [0.5, 0.5], fill(5, 10)))
 #typeof(AbcPmc(randn(10, 2), rand(10, 2), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), [0.5, 0.5], fill(5, 10)))
+
+function copy{A <: AbcPmcStep}(abcpmc::A)
+    return AbcPmc(copy(abcpmc.particles), copy(abcpmc.distances), StatsBase.WeightVec(abcpmc.weights.values), copy(abcpmc.threshold), copy(abcpmc.testedSamples))
+end
