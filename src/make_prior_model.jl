@@ -56,24 +56,24 @@ end
 Simultaneously generate sampler and density function for distribution and parameters
 """
 function make_model_prior{D <: Distributions.Distribution}(d::D)
-    return make_sample_prior(d), make_sample_density(d)
+    return make_sample_prior(d), make_density_prior(d)
 end
 
 function make_model_prior{D <: Distributions.Distribution}(d::Array{D, 1})
-    return make_sample_prior(d), make_sample_density(d)
+    return make_sample_prior(d), make_density_prior(d)
 end
 
 function make_model_prior{T <: Tuple, D <: DataType}(param::T, distr::D)
     d = distr(param...)
-    return make_sample_prior(d), make_sample_density(d)
+    return make_sample_prior(d), make_density_prior(d)
 end
 
 function make_model_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, distr::D)
     dA = [distr(p...) for (p, d) in param]
-    return make_sample_prior(dA), make_sample_density(dA)
+    return make_sample_prior(dA), make_density_prior(dA)
 end
 
 function make_model_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, d::Array{D, 1})
     dA = [d(p...) for (p, d) in zip(param, distr)]
-    return make_sample_prior(dA), make_sample_density(dA)
+    return make_sample_prior(dA), make_density_prior(dA)
 end
