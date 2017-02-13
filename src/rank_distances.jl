@@ -11,8 +11,8 @@ sum from smallest to largest
 # Value
 permutation of indicies so such that distances are ordered from smallest to largest
 """
-function perm_distance(distances::Array{Float64, 1})
-    return sortperm(distances)
+function identiy_distance(distances::Array{Float64, 1})
+    return identity(distances)
 end
 
 
@@ -20,10 +20,10 @@ function sumrank_distance(distances::Array{Float64, 2})
     n, m = size(distances)
     rankArray = Array{Float64}(n, m)
     for jj in 1:m
-        rankArray[:, JJ] sortperm(distances[:, jj])
+        rankArray[:, jj] = sortperm(distances[:, jj])
     end
     totals = vec(sum(rankArray, 2))
-    return sortperm(totals)
+    return totals
 end
 
 
@@ -45,10 +45,10 @@ function maxrank_distance(distances::Array{Float64, 2})
     n, m = size(distances)
     rankArray = Array{Float64}(n, m)
     for jj in 1:m
-        rankArray[:, JJ] sortperm(distances[:, jj])
+        rankArray[:, jj] = sortperm(distances[:, jj])
     end
     totals = vec(maximum(rankArray, 2))
-    return sortperm(totals)
+    return totals
 end
 
 function normrank_distance(distances::Array{Float64, 2})
@@ -56,5 +56,5 @@ function normrank_distance(distances::Array{Float64, 2})
     diststd = std(distances, 1)
     scaledDistances = (distances .- distmin) ./ diststd
     totals = vec(sum(scaledDistances))
-    return sortperm(totals)
+    return totals
 end
