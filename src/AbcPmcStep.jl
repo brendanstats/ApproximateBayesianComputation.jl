@@ -1,4 +1,4 @@
-"""
+#=
 Define data structure to hold results of each iteration of ABC Population Monte Carlo
 algorithm.
 
@@ -8,19 +8,60 @@ algorithm.
  particles
 * `weights::Array{Float64, 1}` array of weights associated with each accepted particle
 * `threshold`
-"""
+* `testedSamples`
+=#
 
 #ABC Posterior can be over either a single parameter or multivarate
+"""
+ABC PMC type describing number of parameters in distribution
+###### Subtypes: `Univariate`, `Multivariate`
+"""
 abstract ParticleDimension
+
+"""
+ABC PMC type for single-parameter distributions
+###### Supertype: `ParticleDimension`
+"""
 type Univariate <: ParticleDimension end
+
+"""
+ABC PMC type for multi-parameter distributions
+
+###### Supertype: `ParticleDimension`
+"""
 type Multivariate <: ParticleDimension end
 
 #Support posteriors based on both singe and multiple distance measures
+"""
+ABC PMC type describing number of distance metrics used
+###### Subtypes: `SingleMeasure`, `MultiMeasure`
+"""
 abstract DistanceMeasure
+
+"""
+ABC PMC type describing single distance measure algorithms
+###### Supertype: `DistanceMeasure`
+"""
 type SingleMeasure <: DistanceMeasure end
+
+"""
+ABC PMC type describing single distance measure algorithms
+###### Supertype: `DistanceMeasure`
+"""
 type MultiMeasure <: DistanceMeasure end
 
 #Base type for posterior object
+"""
+Define data structure to hold results of each iteration of ABC Population Monte Carlo
+algorithm.
+
+# Fieldnames
+* `particles`accepted particles
+* `distances::Array{G <: Real}` distances associated with accepted particles
+* `weights::StatsBase.WeightVec{Float64, Array{Float64, 1}` importance weights each accepted particle
+* `threshold::Array{G <: Real, 1} or G <: Real` acceptance threshold
+* `testedSamples::Array{Int64, 1}` number of samples tested before acceptance for each particle
+"""
 abstract AbcPmcStep{P <: ParticleDimension, D <: DistanceMeasure}
 
 #Define alias for easier function definition
@@ -31,7 +72,7 @@ typealias SingleMeasureAbcPmc{P <: ParticleDimension} AbcPmcStep{P, SingleMeasur
 typealias MultiMeasureAbcPmc{P <: ParticleDimension} AbcPmcStep{P, MultiMeasure}
 
 #Single parameter and single distance measure
-type USAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Univariate, SingleMeasure}
+type USAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Univariate, SingleMeasure}
     particles::Array{T, 1}
     distances::Array{G, 1}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
@@ -40,7 +81,7 @@ type USAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Univariate, SingleMeasure}
 end
 
 #Single parameter and multiple distance measures
-type UMAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Univariate, MultiMeasure}
+type UMAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Univariate, MultiMeasure}
     particles::Array{T, 1}
     distances::Array{G, 2}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
@@ -49,7 +90,7 @@ type UMAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Univariate, MultiMeasure}
 end
 
 #Multiple parameters and single distance measure
-type MSAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Multivariate, SingleMeasure}
+type MSAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Multivariate, SingleMeasure}
     particles::Array{T, 2}
     distances::Array{G, 1}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
@@ -58,7 +99,7 @@ type MSAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Multivariate, SingleMeasur
 end
 
 #Multiple parameters and multiple distance measures
-type MMAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Multivariate, MultiMeasure}
+type MMAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Multivariate, MultiMeasure}
     particles::Array{T, 2}
     distances::Array{G, 2}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
@@ -67,10 +108,10 @@ type MMAbcPmc{T <: Number, G <: Number} <: AbcPmcStep{Multivariate, MultiMeasure
 end
 
 #Constructor selecting type based on inputs
-AbcPmc{T <: Number, G <: Number}(p::Array{T, 1}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = USAbcPmc(p, d, w, t, ts)
-AbcPmc{T <: Number, G <: Number}(p::Array{T, 1}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = UMAbcPmc(p, d, w, t, ts)
-AbcPmc{T <: Number, G <: Number}(p::Array{T, 2}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = MSAbcPmc(p, d, w, t, ts)
-AbcPmc{T <: Number, G <: Number}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = MMAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = USAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = UMAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = MSAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = MMAbcPmc(p, d, w, t, ts)
 
 #typeof(AbcPmc(randn(10), rand(10), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), 0.5, fill(5, 10)))
 #typeof(AbcPmc(randn(10, 2), rand(10), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), 0.5, fill(5, 10)))
