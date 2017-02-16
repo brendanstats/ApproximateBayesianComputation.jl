@@ -31,3 +31,42 @@ function jointquantile_threshold{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
     end
     return thresholds
 end
+
+#function minarea_distance
+#=
+x = rand(1000)
+y = rand(1000)
+
+permx = sortperm(x)
+permy = sortperm(y)
+
+nless = Array{Int64}(1000, 1000)
+x10 = Array{Float64}(0)
+y10 = Array{Float64}(0)
+
+@time for ii in 1:1000
+    for jj in 1:1000
+        nless[ii, jj] = sum(((x .<= x[ii]) .* (y .<= y[jj])))
+        if nless[ii, jj] == 10
+            push!(x10, x[ii])
+            push!(y10, y[jj])
+        end
+    end
+end
+
+xyarea = x10 .* y10
+extrema(xyarea)
+
+permx[10]
+permy[end]
+nless[281, 412]
+
+(x[permx[10]], y[permy[end]])
+
+using RCall
+
+R"plot($x, $y)"
+R"points($x10, $y10, col = 'blue')"
+R"hist($xyarea)"
+R"boxplot($xyarea)"
+=#
