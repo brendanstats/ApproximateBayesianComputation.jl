@@ -8,9 +8,6 @@ type ABCResult{T <: Number, G <: Number}
     testedSamples::Int64
 end
 
-"""
-Internal ABC Function for dealing with 1D prior distributions
-"""
 function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
                         N::Int64,
                         threshold::G,
@@ -133,8 +130,10 @@ the `forward_model` and the provided `summaryStatistics`. The call
 # Value
 Returns an Array corresponding to an accepted parameter values and an Array of
 the associate distances.
+
+# Examples
 """
-function abc_standard{G <: Number}(summaryStatistics::Any,
+function abc_standard{G <: Real}(summaryStatistics::Any,
                       N::Int64,
                       threshold::Union{G, Array{G, 1}},
                       sample_prior::Function,
