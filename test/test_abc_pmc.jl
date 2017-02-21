@@ -31,13 +31,19 @@ verbose = true
               forward_model, rank_distances, kernel_sd, shrink_threshold,
               verbose, log, logFile, save, saveFile)
 
+
+
+
+
+
+
 out[8].threshold
 out[10].threshold
 out[12].threshold
 out[15].threshold
 
 using RCall
-R"plot(density($(out[8].particles), weights = $(out[8].weights.values)))"
+R"plot(density($(out[8].particles), weights = $(out[8].weights.values)), ylim = c(0, 8))"
 R"lines(density($(out[12].particles), weights = $(out[12].weights.values)), lty = 2)"
 R"lines(density($(out[15].particles), weights = $(out[15].weights.values)), lty = 3)"
 R"abline(v = $((sum(data) * 4.0) / (4.0 + 400.0)))"
