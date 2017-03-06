@@ -39,9 +39,6 @@ export duration_to_string
 export abc_standard, ABCResult
 export kernel_weights, pmc_start, pmc_step, abc_pmc
 
-export distance_weights, distancesq_weights
-export pmc_adjstep, abc_adjpmc
-
 export totalsamples_thresholds
 
 include("make_prior_model.jl")
@@ -55,9 +52,6 @@ include("utils.jl")
 
 include("abc_standard.jl")
 include("abc_pmc.jl")
-
-include("adjust_weights.jl")
-include("abc_adjpmc.jl")
 
 include("post_processing.jl")
 end # module
