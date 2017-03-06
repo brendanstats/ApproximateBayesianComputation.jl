@@ -1,1 +1,4 @@
 julia 0.5
+Distributions 0.12.1
+StatsBase 0.13.1
+JLD 0.6.9
