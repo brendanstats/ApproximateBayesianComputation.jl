@@ -21,7 +21,7 @@ initialSample = 1000
 
 println("Testing ppmc_start")
 @time step1 = ppmc_start(summaryStatistics, numParticles, initialSample, sample_prior,
-                         compute_distance, forward_model, rank_distances)
+                         forward_model, compute_distance, rank_distances)
 
 println("Testing ppmc_step")
 @time ppmc_step(step1, summaryStatistics, numParticles, kernel_sd, shrink_threshold, sample_kernel,
@@ -29,8 +29,8 @@ println("Testing ppmc_step")
 
 println("Testing pabc_pmc")
 @time pout = pabc_pmc(summaryStatistics, nsteps, numParticles, initialSample, sample_prior,
-                      density_prior, sample_kernel, density_kernel, compute_distance,
-                      forward_model, rank_distances, kernel_sd, shrink_threshold)
+                      density_prior, sample_kernel, density_kernel, forward_model,
+                      compute_distance, rank_distances, kernel_sd, shrink_threshold)
 
 @time out = abc_pmc(summaryStatistics, nsteps, numParticles, initialSample, sample_prior,
                     density_prior, sample_kernel, density_kernel, compute_distance,

@@ -8,10 +8,10 @@ function sample_particle_distance(summaryStatistics::Any, sample_prior::Function
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelsd::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -29,10 +29,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelsd::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -50,10 +50,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelsd::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -71,10 +71,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelsd::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -97,8 +97,8 @@ Initialize ABC PMC Algorithm
 """
 function ppmc_start(summaryStatistics::Any,
                    numParticles::Int64, initialSample::Int64,
-                   sample_prior::Function, compute_distance::Function,
-                   forward_model::Function, rank_distances::Function,
+                   sample_prior::Function, forward_model::Function,
+                   compute_distance::Function, rank_distances::Function,
                    verbose::Bool = true)
 
     ##Draw first sample to determine typing
@@ -258,7 +258,7 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
                  numParticles::Int64, initialSample::Int64,
                  sample_prior::Function, density_prior::Function,
                  sample_kernel::Function, density_kernel::Function,
-                 compute_distance::Function, forward_model::Function,
+                 forward_model::Function, compute_distance::Function,
                  rank_distances::Function, kernel_sd::Function,
                  shrink_threshold::Function, verbose::Bool = true,
                  log::Bool = true, logFile::String = "log.txt",
@@ -281,8 +281,8 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
     ##Run first step
     results = [ppmc_start(summaryStatistics,
                                   numParticles, initialSample,
-                                  sample_prior, compute_distance,
-                                  forward_model, rank_distances,
+                                  sample_prior, forward_model,
+                                  compute_distance, rank_distances,
                                   verbose)]
     ##Save results
     if verbose println("Saving Step...") end
