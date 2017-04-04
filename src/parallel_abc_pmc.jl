@@ -8,10 +8,10 @@ function sample_particle_distance(summaryStatistics::Any, sample_prior::Function
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelsd::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -29,10 +29,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelsd::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -50,10 +50,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelsd::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -71,10 +71,10 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
 end
 
 function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelsd::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+
     tested = 0
     while true
         tested += 1
-
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
@@ -129,8 +129,8 @@ function ppmc_start(summaryStatistics::Any,
             if proc != myid() || np == 1
                 @async begin
                     while ii < initialSample
-                        ii += 1
                         particles[ii, :], distances[ii, :] = remotecall_fetch(sample_particle_distance, proc, summaryStatistics, sample_prior, forward_model, compute_distance)
+                        ii += 1
                     end
                 end
             end
@@ -205,15 +205,15 @@ function ppmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, num
 
     #Find new particles
     if verbose println("Sampling Particles...") end
-    accepted = 0
+    accepted = 1
     np = nprocs()
     @sync begin
         for proc = 1:np
             if proc != myid() || np == 1
                 @async begin
                     while accepted < numParticles
-                        accepted += 1
                         newParticles[accepted, :], newDistances[accepted, :], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, previousStep, threshold, kernelsd, sample_kernel, forward_model, compute_distance)
+                        accepted += 1
                     end
                 end
             end

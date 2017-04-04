@@ -55,7 +55,7 @@ function pabc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
     #Allocate variables
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N)
-    accepted = 0
+    accepted = 1
     testedSamples = zeros(Int64, N)
 
     #Repeat sampling until N particles accepted
@@ -65,8 +65,8 @@ function pabc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
             if proc != myid() || np == 1
                 @async begin
                     while accepted < N
-                        accepted += 1
                         acceptedDraws[accepted], acceptedDistances[accepted], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                        accepted += 1
                     end
                 end
             end
@@ -98,8 +98,8 @@ function pabc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
             if proc != myid() || np == 1
                 @async begin
                     while accepted < N
-                        accepted += 1
                         acceptedDraws[accepted], acceptedDistances[accepted, :], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                        accepted += 1
                     end
                 end
             end
@@ -133,8 +133,8 @@ function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
             if proc != myid() || np == 1
                 @async begin
                     while accepted < N
-                        accepted += 1
                         acceptedDraws[accepted, :], acceptedDistances[accepted], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                        accepted += 1
                     end
                 end
             end
@@ -163,8 +163,8 @@ function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
             if proc != myid() || np == 1
                 @async begin
                     while accepted < N
-                        accepted += 1
                         acceptedDraws[accepted, :], acceptedDistances[accepted, :], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                        accepted += 1
                     end
                 end
             end
