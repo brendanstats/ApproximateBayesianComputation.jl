@@ -38,7 +38,8 @@ export duration_to_string
 
 export abc_standard, ABCResult
 export kernel_weights, pmc_start, pmc_step, abc_pmc
-
+export pabc_standard, find_particle
+export ppmc_start, ppmc_step, pabc_pmc
 export totalsamples_thresholds
 
 include("make_prior_model.jl")
@@ -51,7 +52,10 @@ include("shrink_threshold.jl")
 include("utils.jl")
 
 include("abc_standard.jl")
+include("parallel_abc_standard.jl")
 include("abc_pmc.jl")
+include("parallel_abc_pmc.jl")
 
 include("post_processing.jl")
+
 end # module

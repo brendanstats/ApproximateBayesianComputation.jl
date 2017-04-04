@@ -39,3 +39,17 @@ function duration_to_string(duration::Base.Dates.Millisecond)
     hours = convert(Int64, hours)
     return string(hours, ":", minutes, ":", seconds)
 end
+
+#=
+"""
+Returns the inverse of a permutaitons `x[perm][invperm(perm)]` will be `x`
+"""
+function invperm{G <: Real}(perm::Array{G, 1})
+    out = Array{G}(length(perm))
+    for (ii, x) in enumerate(perm)
+        out[x] = ii
+    end
+    return out
+end
+=#
+#invpermx[permy[4]]

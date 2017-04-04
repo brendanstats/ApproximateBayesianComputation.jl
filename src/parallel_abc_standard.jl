@@ -17,7 +17,7 @@ function find_particle{G <: Real}(summaryStatistics::Any,
         
         #Retain sample is distance is below threshold
         if proposalDistance < threshold
-            return tested, proposal, proposalDistance
+            return proposal, proposalDistance, tested
         end
     end
 end
@@ -38,7 +38,7 @@ function find_particle{G <: Real}(summaryStatistics::Any,
         
         #Retain sample is distance is below threshold
         if all(proposalDistance .< threshold)
-            return tested, proposal, proposalDistance
+            return proposal, proposalDistance, tested
         end
     end
 end
@@ -56,16 +56,29 @@ function pabc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N)
     accepted = 0
-    testedSamples = 0
+    testedSamples = zeros(Int64, N)
 
     #Repeat sampling until N particles accepted
-    out = pmap(n -> find_particle(summaryStatistics, threshold, sample_prior, forward_model, compute_distance), 1:N)
-    b
+    np = nprocs()
+    @sync begin
+        for proc = 1:np
+            if proc != myid() || np == 1
+                @async begin
+                    while accepted < N
+                        accepted += 1
+                        acceptedDraws[accepted], acceptedDistances[accepted], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                    end
+                end
+            end
+        end
+    end
+    
     #Return result
-    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, sum(testedSamples))
 end
 
-function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
+
+function pabc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
                                      N::Int64,
                                      threshold::Array{G, 1},
                                      sample_prior::Function,
@@ -76,25 +89,22 @@ function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    testedSamples = 0
+    testedSamples = zeros(Int64, N)
 
     #Repeat sampling until N particles accepted
-    while accepted < N
-        testedSamples += 1
-
-        #Draw sample and simulate data
-        proposal = sample_prior()
-        simulatedData = forward_model(proposal)
-        proposalDistance = compute_distance(simulatedData, summaryStatistics)
-
-        #Retain sample is distance is below threshold
-        if all(proposalDistance .< threshold)
-            accepted += 1
-            acceptedDraws[accepted] = proposal
-            acceptedDistances[accepted, :] = proposalDistance
+    np = nprocs()
+    @sync begin
+        for proc = 1:np
+            if proc != myid() || np == 1
+                @async begin
+                    while accepted < N
+                        accepted += 1
+                        acceptedDraws[accepted], acceptedDistances[accepted, :], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                    end
+                end
+            end
         end
     end
-
     #Return result
     return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
@@ -102,7 +112,7 @@ end
 """
 Standard ABC algorithm for multivariate parameter of interest
 """
-function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
+function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
                                          N::Int64,
                                          d::Int64,
                                          threshold::G,
@@ -114,30 +124,27 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N)
     accepted = 0
-    testedSamples = 0
+    testedSamples = zeros(Int64, N)
 
     #Repeat sampling until N particles accepted
-    while accepted < N
-        testedSamples += 1
-
-        #Draw sample and simulate data
-        proposal = sample_prior()
-        simulatedData = forward_model(proposal)
-        proposalDistance = compute_distance(simulatedData, summaryStatistics)
-
-        #Retain sample is distance is below threshold
-        if proposalDistance < threshold
-            accepted += 1
-            acceptedDraws[accepted, :] = proposal
-            acceptedDistances[accepted] = proposalDistance
+    np = nprocs()
+    @sync begin
+        for proc = 1:np
+            if proc != myid() || np == 1
+                @async begin
+                    while accepted < N
+                        accepted += 1
+                        acceptedDraws[accepted, :], acceptedDistances[accepted], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                    end
+                end
+            end
         end
     end
-
     #Return result
     return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
 
-function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
+function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
                                          N::Int64,
                                          d::Int64,
                                          threshold::Array{G, 1},
@@ -147,25 +154,23 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    testedSamples = 0
+    testedSamples = zeros(Int64, N)
 
     #Repeat sampling until N particles accepted
-    while accepted < N
-        testedSamples += 1
-
-        #Draw sample and simulate data
-        proposal = sample_prior()
-        simulatedData = forward_model(proposal)
-        proposalDistance = compute_distance(simulatedData, summaryStatistics)
-
-        #Retain sample is distance is below threshold
-        if all(proposalDistance .< threshold)
-            accepted += 1
-            acceptedDraws[accepted, :] = proposal
-            acceptedDistances[accepted, :] = proposalDistance
+    np = nprocs()
+    @sync begin
+        for proc = 1:np
+            if proc != myid() || np == 1
+                @async begin
+                    while accepted < N
+                        accepted += 1
+                        acceptedDraws[accepted, :], acceptedDistances[accepted, :], testedSamples[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, threshold, sample_prior, forward_model, compute_distance)
+                    end
+                end
+            end
         end
     end
-
+    
     #Return result
     return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
 end
@@ -203,16 +208,17 @@ end
 result = abc_standard(mean(data), 200, 0.05, sample_prior, forward_model, compute_distance)
 ```
 """
-function abc_standard{G <: Real}(summaryStatistics::Any,
-                                 N::Int64,
-                                 threshold::Union{G, Array{G, 1}},
-                                 sample_prior::Function,
-                                 forward_model::Function,
-                                 compute_distance::Function)
+function pabc_standard{G <: Real}(summaryStatistics::Any,
+                                  N::Int64,
+                                  threshold::Union{G, Array{G, 1}},
+                                  sample_prior::Function,
+                                  forward_model::Function,
+                                  compute_distance::Function)
+
     proposal = sample_prior()
     if typeof(proposal) <: Array
-        return abc_standardMultiD(eltype(proposal), summaryStatistics, N, length(proposal), threshold, sample_prior, forward_model, compute_distance)
+        return pabc_standardMultiD(eltype(proposal), summaryStatistics, N, length(proposal), threshold, sample_prior, forward_model, compute_distance)
     else
-        return abc_standard1D(typeof(proposal), summaryStatistics, N, threshold, sample_prior, forward_model, compute_distance)
+        return pabc_standard1D(typeof(proposal), summaryStatistics, N, threshold, sample_prior, forward_model, compute_distance)
     end
 end
