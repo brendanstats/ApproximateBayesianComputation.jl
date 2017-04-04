@@ -1,4 +1,3 @@
-
 """
 Function to calculate weights for new particles
     
@@ -6,9 +5,9 @@ Function to calculate weights for new particles
 * `newParticles`: particles from new time step of abcpmc algorithm
 * `oldParticles`: particles from previous step of abcpmc algorithm
 * `oldWeights::WeightVec`: weights from previous step of abcpmc algorithm
-* `kernelsd`: variance used in transition kernel when drawing new particles
+* `kernelbandwidth`: variance used in transition kernel when drawing new particles
 * `kernelDensity::Function`: density of transition kernel, takes a input value,
- old particle, and kernelsd
+ old particle, and kernelbandwidth
 * `priorDensity::Function`: returns the prior density when given a particle
 
 # Value
@@ -16,7 +15,7 @@ weights for new particles
 """
 function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{T, 1},
                                                             previousStep::A,
-                                                            kernelsd::Float64,
+                                                            kernelbandwidth::Float64,
                                                             density_kernel::Function,
                                                             density_prior::Function)
     if length(newParticles) != length(previousStep.particles)
@@ -25,7 +24,7 @@ function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{
     
     samplingDensity = zeros(Float64, size(newParticles, 1))
     for (p, w) in zip(previousStep.particles, previousStep.weights.values)
-        samplingDensity += (density_kernel.(newParticles, p, kernelsd) .* w)
+        samplingDensity += (density_kernel.(newParticles, p, kernelbandwidth) .* w)
     end
     priorDensity = density_prior.(newParticles)
     newWeights = priorDensity ./ samplingDensity
@@ -34,7 +33,7 @@ end
 
 function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Array{T, 2},
                                                               previousStep::A,
-                                                              kernelsd::Array{Float64, 1},
+                                                              kernelbandwidth::Array{Float64, 1},
                                                               density_kernel::Function,
                                                               density_prior::Function)
     if size(newParticles) != size(previousStep.particles)
@@ -47,7 +46,7 @@ function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Arra
         for (jj, w) in enumerate(previousStep.weights.values)
             samplingDensity += density_kernel(newParticles[ii, :],
                                                   previousStep.particles[jj, :],
-                                                  kernelsd) * w
+                                                  kernelbandwidth) * w
         end
         newWeights[ii] = density_prior(newParticles[ii, :]) / samplingDensity
     end
@@ -58,9 +57,9 @@ end
 Initialize ABC PMC Algorithm
 """
 function pmc_start(summaryStatistics::Any,
-                   numParticles::Int64, initialSample::Int64,
-                   sample_prior::Function, compute_distance::Function,
-                   forward_model::Function, rank_distances::Function,
+                   nparticles::Int64, ninitial::Int64,
+                   sample_prior::Function, forward_model::Function,
+                   compute_distance::Function, rank_distances::Function,
                    verbose::Bool = true)
 
     ##Draw first sample to determine typing
@@ -70,15 +69,15 @@ function pmc_start(summaryStatistics::Any,
 
     ##Initialize Arrays based on draws
     if typeof(proposal) <: Array
-        particles = Array{eltype(proposal)}(initialSample, length(proposal))
+        particles = Array{eltype(proposal)}(ninitial, length(proposal))
     else
-        particles = Array{eltype(proposal)}(initialSample)
+        particles = Array{eltype(proposal)}(ninitial)
     end
 
     if typeof(dist) <: Array
-        distances = Array{eltype(dist)}(initialSample, length(dist))
+        distances = Array{eltype(dist)}(ninitial, length(dist))
     else
-        distances = Array{eltype(dist)}(initialSample)
+        distances = Array{eltype(dist)}(ninitial)
     end
     
     particles[1, :] = proposal
@@ -86,7 +85,7 @@ function pmc_start(summaryStatistics::Any,
     
     ##Calculate initial samples
     if verbose println("Sampling Initial Particles and Computing Distances...") end
-    for ii in 2:initialSample
+    for ii in 2:ninitial
         proposal = sample_prior()
         simulatedData = forward_model(proposal)
         particles[ii, :] = proposal
@@ -99,7 +98,7 @@ function pmc_start(summaryStatistics::Any,
     sortedPermutation = sortperm(ranks)
 
     ##Subset Particles
-    idxs = sortedPermutation[1:numParticles]
+    idxs = sortedPermutation[1:nparticles]
     if typeof(proposal) <: Array
         particles = particles[idxs, :]
     else
@@ -115,9 +114,9 @@ function pmc_start(summaryStatistics::Any,
     end
 
     ##Return result
-    weights = StatsBase.WeightVec(fill(1.0 / numParticles, numParticles))
-    testedSamples = fill(floor(Int64, initialSample / numParticles), numParticles)
-    return AbcPmc(particles, distances, weights, threshold, testedSamples)
+    weights = StatsBase.WeightVec(fill(1.0 / nparticles, nparticles))
+    nsampled = fill(floor(Int64, ninitial / nparticles), nparticles)
+    return AbcPmc(particles, distances, weights, threshold, nsampled)
 end
 
 """
@@ -140,8 +139,8 @@ ABCPMCStep object containing new posterior distribution, parameters and weights,
 as computed distances, total number of parameters sampled, and acceptance threshold that
 was used.
 """
-function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, numParticles::Int64,
-                  kernel_sd::Function, shrink_threshold::Function,
+function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, nparticles::Int64,
+                  kernel_bandwidth::Function, shrink_threshold::Function,
                   sample_kernel::Function, forward_model::Function,
                   compute_distance::Function, density_kernel::Function,
                   density_prior::Function, verbose::Bool = true)
@@ -149,11 +148,11 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, numP
     #Allocate variables
     newParticles = zeros(previousStep.particles)
     newDistances = zeros(previousStep.distances)
-    testedSamples = zeros(previousStep.testedSamples)
+    nsampled = zeros(previousStep.nsampled)
 
     #Compute kernel variance / std
-    if verbose println("Calculating Variance...") end
-    kernelsd = kernel_sd(previousStep)
+    if verbose println("Calculating Bandwidth...") end
+    kernelbandwidth = kernel_bandwidth(previousStep)
 
     #Compute new threshold
     if verbose println("Calculating Threshold...") end
@@ -162,12 +161,12 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, numP
     #Find new particles
     if verbose println("Sampling Particles...") end
     numAccepted = 0
-    while numAccepted < numParticles
-        testedSamples[numAccepted + 1] += 1
+    while numAccepted < nparticles
+        nsampled[numAccepted + 1] += 1
 
         #Draw Sample
         proposal = StatsBase.sample(previousStep)
-        proposal = sample_kernel(proposal, kernelsd)
+        proposal = sample_kernel(proposal, kernelbandwidth)
 
         #Simulate data
         simulatedData = forward_model(proposal)
@@ -182,11 +181,56 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, numP
     end
     
     if verbose  println("Calculating Weights...") end
-    newWeights = kernel_weights(newParticles, previousStep, kernelsd,
+    newWeights = kernel_weights(newParticles, previousStep, kernelbandwidth,
                                 density_kernel, density_prior)
     
     #Return result as AbcPmcStep
-    return AbcPmc(newParticles, newDistances, newWeights, threshold, testedSamples)
+    return AbcPmc(newParticles, newDistances, newWeights, threshold, nsampled)
+end
+
+"""
+Formatting for logging run setup
+"""
+function initlog(filename::String, startTime::DateTime, ninitial::Int64, nparticles::Int64, nsteps::Int64)
+    logfile = open(filename, "w")
+    write(logfile, "Run Info\n")
+    write(logfile, "————————————————————","\n")
+    write(logfile, string("Start Time: ", Dates.format(startTime, "Y-mm-dd HH:MM:SS"), "\n"))
+    write(logfile, string("Initial Samples: ", ninitial, "\n"))
+    write(logfile, string("Particles: ", nparticles, "\n"))
+    write(logfile, string("Steps: ", nsteps, "\n"))
+    write(logfile, "————————————————————","\n\n")
+    close(logfile)
+    nothing
+end
+
+"""
+Formatting for logging step info
+"""
+function steplog{G <: AbstractFloat}(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepthreshold::G, nsampled::Int64)
+    logfile = open(filename, "a")
+        write(logfile, string("Step ", nstep, " Info\n"))
+        write(logfile, "————————————————————","\n")
+        write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
+        write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
+        write(logfile, string("Threshold: ", stepthreshold, "\n"))
+        write(logfile, string("Particles Sampled: ", nsampled, "\n"))
+        write(logfile, "————————————————————","\n\n")
+    close(logfile)
+    nothing
+end
+
+function steplog{G <: AbstractFloat}(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepthreshold::Array{G, 1}, nsampled::Int64)
+    logfile = open(filename, "a")
+        write(logfile, string("Step ", nstep, " Info\n"))
+        write(logfile, "————————————————————","\n")
+        write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
+        write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
+        write(logfile, string("Threshold: ", stepthreshold, "\n"))
+        write(logfile, string("Particles Sampled: ", nsampled, "\n"))
+        write(logfile, "————————————————————","\n\n")
+    close(logfile)
+    nothing
 end
 
 """
@@ -195,8 +239,8 @@ Population Monte Carlo Approximate Bayesian Computation Algorithm
 # Arguments
 * `summaryStatistics` data for posterior to be conditioned on
 * `steps::Int64` number of iterations to run
-* `numParticles::Int64` number of posterior samples to return for each iteration
-* `initialSample::Int64` number of samples to base initial iterationon
+* `nparticles::Int64` number of posterior samples to return for each iteration
+* `ninitial::Int64` number of samples to base initial iterationon
 * `sample_prior::Function` generates a random draw from the prior
 * `density_prior::Function` pdf of prior
 * `compute_distance::Function` compute distance metric between output of
@@ -216,34 +260,26 @@ parameter value
 * `verbose::Bool = true` should progress be reported
 """
 function abc_pmc(summaryStatistics::Any, nsteps::Int64,
-                 numParticles::Int64, initialSample::Int64,
+                 nparticles::Int64, ninitial::Int64,
                  sample_prior::Function, density_prior::Function,
                  sample_kernel::Function, density_kernel::Function,
-                 compute_distance::Function, forward_model::Function,
-                 rank_distances::Function, kernel_sd::Function,
+                 forward_model::Function, compute_distance::Function,
+                 rank_distances::Function, kernel_bandwidth::Function,
                  shrink_threshold::Function, verbose::Bool = true,
                  log::Bool = true, logFile::String = "log.txt",
                  save::Bool = true, saveFile::String = "results.jld")
 
     ##Write initial information is running log file
-    startTime = now()
     if log
-        logfile = open(logFile, "a")
-        write(logfile, "Run Info\n")
-        write(logfile, "————————————————————","\n")
-        write(logfile, string("Start Time:", Dates.format(startTime, "Y-mm-dd HH:MM:SS"), "\n"))
-        write(logfile, string("Initial Samples:", initialSample, "\n"))
-        write(logfile, string("Particles: ", numParticles, "\n"))
-        write(logfile, string("Steps: ", nsteps, "\n"))
-        write(logfile, "————————————————————","\n\n")
-        close(logfile)
+        startTime = now()
+        initlog(logFile, startTime, ninitial, nparticles, nsteps)
     end
 
     ##Run first step
     results = [pmc_start(summaryStatistics,
-                                  numParticles, initialSample,
-                                  sample_prior, compute_distance,
-                                  forward_model, rank_distances,
+                                  nparticles, ninitial,
+                                  sample_prior, forward_model,
+                                  compute_distance, rank_distances,
                                   verbose)]
     ##Save results
     if verbose println("Saving Step...") end
@@ -252,24 +288,16 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
     ##Print to log file    
     if verbose println(string("Step ", 1, " Complete")) end
 
-    stepTime = now() - startTime
-    totalTime = stepTime
     if log
-        logfile = open(logFile, "w")
-        write(logfile, string("Step 1 Info\n"))
-        write(logfile, "————————————————————","\n")
-        write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
-        write(logfile, string("Step Time: ", duration_to_string(totalTime), "\n"))
-        write(logfile, string("Threshold: ", results[1].threshold, "\n"))
-        write(logfile, string("Particles Tested: ", initialSample, "\n"))
-        write(logfile, "————————————————————","\n\n")
-        close(logfile)
+        stepTime = now() - startTime
+        totalTime = stepTime
+        steplog(logFile, 1, totalTime, stepTime, results[1].threshold, ninitial)
     end
 
     #Subsequent steps
     for ii in 2:nsteps
-        push!(results, pmc_step(results[ii - 1], summaryStatistics, numParticles,
-                                kernel_sd, shrink_threshold, sample_kernel,
+        push!(results, pmc_step(results[ii - 1], summaryStatistics, nparticles,
+                                kernel_bandwidth, shrink_threshold, sample_kernel,
                                 forward_model, compute_distance, density_kernel,
                                 density_prior, verbose))
 
@@ -278,20 +306,14 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
         if save JLD.@save saveFile results end
 
         #Print to log file
-        stepTime = now() - startTime - totalTime
-        totalTime += stepTime
+        if verbose println(string("Step ", ii, " Complete")) end
+        
         if log
-            logfile = open(logFile, "a")
-            write(logfile, string("Step ", ii, " Info\n"))
-            write(logfile, "————————————————————","\n")
-            write(logfile,string("Total Time: ", duration_to_string(totalTime), "\n"))
-            write(logfile,string("Step Time: ", duration_to_string(stepTime), "\n"))
-            write(logfile, string("Threshold: ", results[ii].threshold, "\n"))
-            write(logfile, string("Particles Tested: ", results[ii].testedSamples, "\n"))
-            write(logfile, "————————————————————","\n\n")
-            close(logfile)
+            stepTime = now() - startTime - totalTime
+            totalTime += stepTime
+            steplog(logFile, ii, totalTime, stepTime, results[ii].threshold, sum(results[ii].nsampled))
         end
-        if verbose println(string("Step ", ii, " Complete")) end        
+        
     end
     return results
 end

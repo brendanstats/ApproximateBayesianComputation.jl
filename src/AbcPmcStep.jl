@@ -8,7 +8,7 @@ algorithm.
  particles
 * `weights::Array{Float64, 1}` array of weights associated with each accepted particle
 * `threshold`
-* `testedSamples`
+* `nsampled`
 =#
 
 #ABC Posterior can be over either a single parameter or multivarate
@@ -60,7 +60,7 @@ algorithm.
 * `distances::Array{G <: Real}` distances associated with accepted particles
 * `weights::StatsBase.WeightVec{Float64, Array{Float64, 1}` importance weights each accepted particle
 * `threshold::Array{G <: Real, 1} or G <: Real` acceptance threshold
-* `testedSamples::Array{Int64, 1}` number of samples tested before acceptance for each particle
+* `nsampled::Array{Int64, 1}` number of samples tested before acceptance for each particle
 """
 abstract AbcPmcStep{P <: ParticleDimension, D <: DistanceMeasure}
 
@@ -77,7 +77,7 @@ type USAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Univariate, SingleMeasure}
     distances::Array{G, 1}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
     threshold::G
-    testedSamples::Array{Int64, 1}
+    nsampled::Array{Int64, 1}
 end
 
 #Single parameter and multiple distance measures
@@ -86,7 +86,7 @@ type UMAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Univariate, MultiMeasure}
     distances::Array{G, 2}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
     threshold::Array{G, 1}
-    testedSamples::Array{Int64, 1}
+    nsampled::Array{Int64, 1}
 end
 
 #Multiple parameters and single distance measure
@@ -95,7 +95,7 @@ type MSAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Multivariate, SingleMeasure}
     distances::Array{G, 1}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
     threshold::G
-    testedSamples::Array{Int64, 1}
+    nsampled::Array{Int64, 1}
 end
 
 #Multiple parameters and multiple distance measures
@@ -104,7 +104,7 @@ type MMAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Multivariate, MultiMeasure}
     distances::Array{G, 2}
     weights::StatsBase.WeightVec{Float64,Array{Float64,1}}
     threshold::Array{G, 1}
-    testedSamples::Array{Int64, 1}
+    nsampled::Array{Int64, 1}
 end
 
 #Constructor selecting type based on inputs
@@ -113,13 +113,8 @@ AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 2}, w::StatsBase.Weig
 AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = MSAbcPmc(p, d, w, t, ts)
 AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = MMAbcPmc(p, d, w, t, ts)
 
-#typeof(AbcPmc(randn(10), rand(10), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), 0.5, fill(5, 10)))
-#typeof(AbcPmc(randn(10, 2), rand(10), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), 0.5, fill(5, 10)))
-#typeof(AbcPmc(randn(10), rand(10, 2), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), [0.5, 0.5], fill(5, 10)))
-#typeof(AbcPmc(randn(10, 2), rand(10, 2), StatsBase.WeightVec([fill(0.1, 5); fill(0.2, 5)]), [0.5, 0.5], fill(5, 10)))
-
 function copy{A <: AbcPmcStep}(abcpmc::A)
-    return AbcPmc(copy(abcpmc.particles), copy(abcpmc.distances), StatsBase.WeightVec(abcpmc.weights.values), copy(abcpmc.threshold), copy(abcpmc.testedSamples))
+    return AbcPmc(copy(abcpmc.particles), copy(abcpmc.distances), StatsBase.WeightVec(abcpmc.weights.values), copy(abcpmc.threshold), copy(abcpmc.nsampled))
 end
 
 function StatsBase.sample{A <: UnivariateAbcPmc}(abcpmc::A)

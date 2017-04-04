@@ -18,7 +18,7 @@ function totalsamples_thresholds{A <: SingleMeasureAbcPmc}(x::Array{A, 1})
     totalsamples = zeros(T, length(x))
     thresholds = zeros(T, length(x))
     for (ii, a) in enumerate(x)
-        totalsamples[ii] = sum(T, a.testedSamples)
+        totalsamples[ii] = sum(T, a.nsampled)
         thresholds[ii] = a.threshold
     end
     return (["samples", "threshold"], [cumsum(totalsamples) thresholds])
@@ -29,7 +29,7 @@ function totalsamples_thresholds{A <: MultiMeasureAbcPmc}(x::Array{A, 1})
     totalsamples = zeros(T, length(x))
     thresholds = zeros(T, length(x), length(x[1].threshold))
     for (ii, a) in enumerate(x)
-        totalsamples[ii] = sum(T, a.testedSamples)
+        totalsamples[ii] = sum(T, a.nsampled)
         thresholds[ii, :] = a.threshold
     end
     return (["samples"; map(x -> string("threshold", x), 1:size(thresholds, 2))], [cumsum(totalsamples) thresholds])

@@ -16,11 +16,15 @@ using ApproximateBayesianComputation
 data = rand(Distributions.Normal(2.0, 0.5), 100)
 summaryStatistics = mean(data)
 
-#Define functions for both standard and population Monte carlo algorithms
+#Define functions for both standard and population Monte Carlo algorithms
 sample_prior, density_prior = make_model_prior(Distributions.Normal(0.0, 0.5))
 sample_kernel, density_kernel = make_normal_kernel()
+
 forward_model(μ::Float64) = rand(Distributions.Normal(μ, 0.5), 100)
 compute_distance(x::Array{Float64, 1}, y::Float64) = abs(mean(x) - y)
+
+#Define functions used in only the population Monte Carlo algorithm
+kernel_bandwidth = weightedstd2
 rank_distances = identity
 shrink_threshold{A <: SingleMeasureAbcPmc}(abcpmc::A) = quantile_threshold(abcpmc, 0.3)
 
@@ -36,14 +40,14 @@ out_standard = abc_standard(summaryStatistics,
              compute_distance)
 
 #Other PMC ABC parameters
-numParticles = 200
-initialSample = 1000
+nparticles = 200
+ninitial = 1000
 nsteps = 10
 
 out_pmc = abc_pmc(summaryStatistics,
         nsteps,
-        numParticles,
-        initialSample,
+        nparticles,
+        ninitial,
         sample_prior,
         density_prior,
         sample_kernel,
@@ -51,7 +55,7 @@ out_pmc = abc_pmc(summaryStatistics,
         compute_distance,
         forward_model,
         rank_distances,
-        kernel_sd,
+        kernel_bandwidth,
         shrink_threshold)
 ```
 

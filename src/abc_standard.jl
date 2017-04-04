@@ -4,13 +4,13 @@ Type for Basic ABC Output
 * `particles`
 * `distances`
 * `threshold`
-* `testedSamples`
+* `nsampled`
 """
 type ABCResult{T <: Number, G <: Real}
     particles::Union{Array{T, 1}, Array{T, 2}}
     distances::Union{Array{G, 1}, Array{G, 2}}
     threshold::Union{G, Array{G, 1}}
-    testedSamples::Int64
+    nsampled::Int64
 end
 
 """
@@ -26,11 +26,11 @@ function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N)
     accepted = 0
-    testedSamples = 0
+    nsampled = 0
 
     #Repeat sampling until N particles accepted
     while accepted < N
-        testedSamples += 1
+        nsampled += 1
 
         #Draw sample and simulate data
         proposal = sample_prior()
@@ -46,7 +46,7 @@ function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
     end
 
     #Return result
-    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, nsampled)
 end
 
 function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
@@ -60,11 +60,11 @@ function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    testedSamples = 0
+    nsampled = 0
 
     #Repeat sampling until N particles accepted
     while accepted < N
-        testedSamples += 1
+        nsampled += 1
 
         #Draw sample and simulate data
         proposal = sample_prior()
@@ -80,7 +80,7 @@ function abc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
     end
 
     #Return result
-    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, nsampled)
 end
 
 """
@@ -98,11 +98,11 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N)
     accepted = 0
-    testedSamples = 0
+    nsampled = 0
 
     #Repeat sampling until N particles accepted
     while accepted < N
-        testedSamples += 1
+        nsampled += 1
 
         #Draw sample and simulate data
         proposal = sample_prior()
@@ -118,7 +118,7 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     end
 
     #Return result
-    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, nsampled)
 end
 
 function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
@@ -131,11 +131,11 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
-    testedSamples = 0
+    nsampled = 0
 
     #Repeat sampling until N particles accepted
     while accepted < N
-        testedSamples += 1
+        nsampled += 1
 
         #Draw sample and simulate data
         proposal = sample_prior()
@@ -151,7 +151,7 @@ function abc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     end
 
     #Return result
-    return ABCResult(acceptedDraws, acceptedDistances, threshold, testedSamples)
+    return ABCResult(acceptedDraws, acceptedDistances, threshold, nsampled)
 end
 
 """

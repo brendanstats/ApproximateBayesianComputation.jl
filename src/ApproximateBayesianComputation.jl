@@ -46,7 +46,7 @@ include("make_prior_model.jl")
 include("make_kernel_model.jl")
 include("AbcPmcStep.jl")
 
-include("kernel_sd.jl")
+include("kernel_bandwidth.jl")
 include("rank_distances.jl")
 include("shrink_threshold.jl")
 include("utils.jl")
