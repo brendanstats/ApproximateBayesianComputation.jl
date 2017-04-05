@@ -128,9 +128,12 @@ function ppmc_start(summaryStatistics::Any,
         for proc = 1:np
             if proc != myid() || np == 1
                 @async begin
-                    while ii < ninitial
-                        particles[ii, :], distances[ii, :] = remotecall_fetch(sample_particle_distance, proc, summaryStatistics, sample_prior, forward_model, compute_distance)
-                        ii += 1
+                    while true
+                        idx = (idx = ii; ii += 1; idx)
+                        if idx > ninitial
+                            break
+                        end
+                        particles[idx, :], distances[idx, :] = remotecall_fetch(sample_particle_distance, proc, summaryStatistics, sample_prior, forward_model, compute_distance)
                     end
                 end
             end
@@ -211,8 +214,12 @@ function ppmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, npa
         for proc = 1:np
             if proc != myid() || np == 1
                 @async begin
-                    while accepted < nparticles
-                        newParticles[accepted, :], newDistances[accepted, :], nsampled[accepted] = remotecall_fetch(find_particle, proc, summaryStatistics, previousStep, threshold, kernelbandwidth, sample_kernel, forward_model, compute_distance)
+                    while true
+                        idx = (idx = accepted; accepted += 1; idx)
+                        if accepted > nparticles
+                            break
+                        end
+                        newParticles[idx, :], newDistances[idx, :], nsampled[idx] = remotecall_fetch(find_particle, proc, summaryStatistics, previousStep, threshold, kernelbandwidth, sample_kernel, forward_model, compute_distance)
                         accepted += 1
                     end
                 end

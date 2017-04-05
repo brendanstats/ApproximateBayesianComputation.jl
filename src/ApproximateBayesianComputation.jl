@@ -39,7 +39,7 @@ export duration_to_string
 export abc_standard, ABCResult
 export kernel_weights, pmc_start, pmc_step, abc_pmc
 export pabc_standard, find_particle
-export ppmc_start, ppmc_step, pabc_pmc
+export sample_particle_distance, ppmc_start, ppmc_step, pabc_pmc
 export totalsamples_thresholds
 
 include("make_prior_model.jl")
