@@ -216,11 +216,10 @@ function ppmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, npa
                 @async begin
                     while true
                         idx = (idx = accepted; accepted += 1; idx)
-                        if accepted > nparticles
+                        if idx > nparticles
                             break
                         end
                         newParticles[idx, :], newDistances[idx, :], nsampled[idx] = remotecall_fetch(find_particle, proc, summaryStatistics, previousStep, threshold, kernelbandwidth, sample_kernel, forward_model, compute_distance)
-                        accepted += 1
                     end
                 end
             end
