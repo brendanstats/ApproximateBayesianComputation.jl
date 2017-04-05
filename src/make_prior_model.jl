@@ -69,7 +69,7 @@ function make_model_prior{T <: Tuple, D <: DataType}(param::T, distr::D)
 end
 
 function make_model_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, distr::D)
-    dA = [distr(p...) for (p, d) in param]
+    dA = [distr(p...) for p in param]
     return make_sample_prior(dA), make_density_prior(dA)
 end
 
