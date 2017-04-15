@@ -266,7 +266,7 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
                  sample_kernel::Function, density_kernel::Function,
                  forward_model::Function, compute_distance::Function,
                  rank_distances::Function, kernel_bandwidth::Function,
-                 shrink_threshold::Function, verbose::Bool = true,
+                 shrink_threshold::Function; verbose::Bool = true,
                  log::Bool = true, logFile::String = "log.txt",
                  save::Bool = true, saveFile::String = "results.jld")
 
