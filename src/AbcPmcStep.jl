@@ -108,10 +108,10 @@ type MMAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Multivariate, MultiMeasure}
 end
 
 #Constructor selecting type based on inputs
-AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = USAbcPmc(p, d, w, t, ts)
-AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = UMAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64, Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = USAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 1}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64, Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = UMAbcPmc(p, d, w, t, ts)
 AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 1}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::G, ts::Array{Int64, 1}) = MSAbcPmc(p, d, w, t, ts)
-AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64,Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = MMAbcPmc(p, d, w, t, ts)
+AbcPmc{T <: Number, G <: Real}(p::Array{T, 2}, d::Array{G, 2}, w::StatsBase.WeightVec{Float64, Array{Float64,1}}, t::Array{G, 1}, ts::Array{Int64, 1}) = MMAbcPmc(p, d, w, t, ts)
 
 function copy{A <: AbcPmcStep}(abcpmc::A)
     return AbcPmc(copy(abcpmc.particles), copy(abcpmc.distances), StatsBase.WeightVec(abcpmc.weights.values), copy(abcpmc.threshold), copy(abcpmc.nsampled))

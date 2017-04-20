@@ -155,7 +155,7 @@ function ppmc_start(summaryStatistics::Any,
 
     if typeof(dist) <: Array
         distances = distances[idxs, :]
-        threshold = maximum(distances, 1)
+        threshold = vec(maximum(distances, 1))
     else
         distances = distances[idxs]
         threshold = maximum(distances)
