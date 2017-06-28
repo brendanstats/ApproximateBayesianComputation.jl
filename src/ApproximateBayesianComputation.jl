@@ -10,9 +10,6 @@ module ApproximateBayesianComputation
 import StatsBase, Distributions, JLD
 import Base.copy
 
-export make_sample_prior, make_density_prior, make_model_prior
-export make_normal_kernel, make_jointnormal_kernel, make_truncatednormal_kernel,
-    make_joint_kernel
 export ParticleDimension,
     Univariate,
     Multivariate,
@@ -29,33 +26,34 @@ export ParticleDimension,
     MSAbcPmc,
     MMAbcPmc,
     AbcPmc
-
+export kernel_weights, pmc_start, pmc_step, abc_pmc
+export abc_standard, ABCResult, abc_standard1D, abc_standardMultiD
+export boxcar_accept, gaussian_accept
+export maxdist_bandwidth, gaussianprob_bandwidth
 export weightedstd, weightedstd2
+export make_normal_kernel, make_jointnormal_kernel, make_truncatednormal_kernel,
+    make_joint_kernel
+export make_sample_prior, make_density_prior, make_model_prior
+export sample_particle_distance, ppmc_start, ppmc_step, pabc_pmc
+export pabc_standard, find_particle
+export totalsamples_thresholds
 export perm_distance, sumrank_distance, maxrank_distance, normrank_distance
-export quantile_threshold, independentquantile_threshold, jointquantile_threshold
-
+export quantile_acceptbw, independentquantile_acceptbw, jointquantile_acceptbw
 export duration_to_string
 
-export abc_standard, ABCResult
-export kernel_weights, pmc_start, pmc_step, abc_pmc
-export pabc_standard, find_particle
-export sample_particle_distance, ppmc_start, ppmc_step, pabc_pmc
-export totalsamples_thresholds
-
-include("make_prior_model.jl")
-include("make_kernel_model.jl")
 include("AbcPmcStep.jl")
-
-include("kernel_bandwidth.jl")
-include("rank_distances.jl")
-include("shrink_threshold.jl")
-include("utils.jl")
-
-include("abc_standard.jl")
-include("parallel_abc_standard.jl")
 include("abc_pmc.jl")
+include("abc_standard.jl")
+include("accept_reject.jl")
+include("initial_acceptbw.jl")
+include("kernel_bandwidth.jl")
+include("make_kernel_model.jl")
+include("make_prior_model.jl")
 include("parallel_abc_pmc.jl")
-
+include("parallel_abc_standard.jl")
 include("post_processing.jl")
+include("rank_distances.jl")
+include("shrink_acceptbw.jl")
+include("utils.jl")
 
 end # module

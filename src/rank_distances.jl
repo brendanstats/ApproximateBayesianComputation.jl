@@ -81,3 +81,67 @@ function normrank_distance{G <: Real}(distances::Array{G, 2})
     totals = vec(sum(scaledDistances))
     return totals
 end
+
+"""
+Efficiently find the points across two distance metrics with exactly N entries <= both
+"""
+function minarea_distance{G <: Real}(x::Array{G, 1}, y::Array{G, 1}, N::Integer)
+    permx = sortperm(x)
+    rankx = invperm(permx)
+    permy = sortperm(y)
+    ranky = invperm(permy)
+    yranks = falses(y)
+    for ii in 1:(N - 1)
+        yranks[ranky[permx[ii]]] = true
+    end
+    ymaxrank = length(yranks)
+    
+    xdist = x[permx[N:end]]
+    ydist = zeros(xdist)
+    ydist[1] = y[permy[ymaxrank]]
+    for (ii, idx) in enumerate(permx[N:end])
+        if ranky[idx] < ymaxrank
+            yranks[ranky[idx]] = true
+            ymaxrank = findprev(yranks, ymaxrank - 1)
+        end
+        ydist[ii] = y[permy[ymaxrank]]
+    end
+    return [xdist ydist]
+end
+#=
+x = rand(1000)
+y = rand(1000)
+
+permx = sortperm(x)
+permy = sortperm(y)
+
+nless = Array{Int64}(1000, 1000)
+x10 = Array{Float64}(0)
+y10 = Array{Float64}(0)
+
+@time for ii in 1:1000
+    for jj in 1:1000
+        nless[ii, jj] = sum(((x .<= x[ii]) .* (y .<= y[jj])))
+        if nless[ii, jj] == 10
+            push!(x10, x[ii])
+            push!(y10, y[jj])
+        end
+    end
+end
+
+xyarea = x10 .* y10
+extrema(xyarea)
+
+permx[10]
+permy[end]
+nless[281, 412]
+
+(x[permx[10]], y[permy[end]])
+
+using RCall
+
+R"plot($x, $y)"
+R"points($x10, $y10, col = 'blue')"
+R"hist($xyarea)"
+R"boxplot($xyarea)"
+=#

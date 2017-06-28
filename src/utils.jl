@@ -40,16 +40,23 @@ function duration_to_string(duration::Base.Dates.Millisecond)
     return string(hours, ":", minutes, ":", seconds)
 end
 
-#=
 """
-Returns the inverse of a permutaitons `x[perm][invperm(perm)]` will be `x`
+Returns only the rows (2D) or entries corresponding to the supplied indicies
 """
-function invperm{G <: Real}(perm::Array{G, 1})
-    out = Array{G}(length(perm))
-    for (ii, x) in enumerate(perm)
-        out[x] = ii
-    end
-    return out
+function subset{T <: Any, G <: Integer}(A::Array{T, 1}, idxs::Array{G})
+    return A[idxs]
 end
-=#
-#invpermx[permy[4]]
+
+function subset!{T <: Any, G <: Integer}(A::Array{T, 1}, idxs::Array{G})
+    A = A[idxs]
+    nothing
+end
+
+function subset{T <: Any, G <: Integer}(A::Array{T, 2}, idxs::Array{G})
+    return A[idxs, :]
+end
+
+function subset!{T <: Any, G <: Integer}(A::Array{T, 2}, idxs::Array{G})
+    A = A[idxs, :]
+    nothing
+end

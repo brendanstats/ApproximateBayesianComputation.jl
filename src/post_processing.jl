@@ -9,30 +9,30 @@
 
 
 """
-`totalsamples_thresholds(Array{AbcPmcStep, 1})`
+`totalsamples_acceptbws(Array{AbcPmcStep, 1})`
 
-Takes array of AbcPmcStep and returns a tuple `(labels, [samples, thresholds])` where row `i` corresponds to the `ith` entry of the input Array.  The first column will list the total number of samples drawn in the corresponding step while subsequent columns will list threshold information.  In the case of a `MultiMeasureAbcPmc` array labels are given as 'threshold1', 'threshold2', ...
+Takes array of AbcPmcStep and returns a tuple `(labels, [samples, acceptbws])` where row `i` corresponds to the `ith` entry of the input Array.  The first column will list the total number of samples drawn in the corresponding step while subsequent columns will list acceptbw information.  In the case of a `MultiMeasureAbcPmc` array labels are given as 'acceptbw1', 'acceptbw2', ...
 """
-function totalsamples_thresholds{A <: SingleMeasureAbcPmc}(x::Array{A, 1})
-    T = eltype(x[1].threshold)
+function totalsamples_acceptbws{A <: SingleMeasureAbcPmc}(x::Array{A, 1})
+    T = eltype(x[1].acceptbw)
     totalsamples = zeros(T, length(x))
-    thresholds = zeros(T, length(x))
+    acceptbws = zeros(T, length(x))
     for (ii, a) in enumerate(x)
         totalsamples[ii] = sum(T, a.nsampled)
-        thresholds[ii] = a.threshold
+        acceptbws[ii] = a.acceptbw
     end
-    return (["samples", "threshold"], [cumsum(totalsamples) thresholds])
+    return (["samples", "acceptbw"], [cumsum(totalsamples) acceptbws])
 end
 
-function totalsamples_thresholds{A <: MultiMeasureAbcPmc}(x::Array{A, 1})
-    T = eltype(x[1].threshold)
+function totalsamples_acceptbws{A <: MultiMeasureAbcPmc}(x::Array{A, 1})
+    T = eltype(x[1].acceptbw)
     totalsamples = zeros(T, length(x))
-    thresholds = zeros(T, length(x), length(x[1].threshold))
+    acceptbws = zeros(T, length(x), length(x[1].acceptbw))
     for (ii, a) in enumerate(x)
         totalsamples[ii] = sum(T, a.nsampled)
-        thresholds[ii, :] = a.threshold
+        acceptbws[ii, :] = a.acceptbw
     end
-    return (["samples"; map(x -> string("threshold", x), 1:size(thresholds, 2))], [cumsum(totalsamples) thresholds])
+    return (["samples"; map(x -> string("acceptbw", x), 1:size(acceptbws, 2))], [cumsum(totalsamples) acceptbws])
 end
 
 """
