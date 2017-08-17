@@ -16,7 +16,7 @@ algorithm.
 ABC PMC type describing number of parameters in distribution
 ###### Subtypes: `Univariate`, `Multivariate`
 """
-abstract ParticleDimension
+abstract type ParticleDimension end
 
 """
 ABC PMC type for single-parameter distributions
@@ -36,7 +36,7 @@ type Multivariate <: ParticleDimension end
 ABC PMC type describing number of distance metrics used
 ###### Subtypes: `SingleMeasure`, `MultiMeasure`
 """
-abstract DistanceMeasure
+abstract type DistanceMeasure end
 
 """
 ABC PMC type describing single distance measure algorithms
@@ -62,14 +62,14 @@ algorithm.
 * `acceptbw::Array{G <: Real, 1} or G <: Real` acceptance acceptbw
 * `nsampled::Array{Int64, 1}` number of samples tested before acceptance for each particle
 """
-abstract AbcPmcStep{P <: ParticleDimension, D <: DistanceMeasure}
+abstract type AbcPmcStep{P <: ParticleDimension, D <: DistanceMeasure} end
 
 #Define alias for easier function definition
-typealias UnivariateAbcPmc{D <: DistanceMeasure} AbcPmcStep{Univariate, D}
-typealias MultivariateAbcPmc{D <: DistanceMeasure} AbcPmcStep{Multivariate, D}
+UnivariateAbcPmc{D <: DistanceMeasure} = AbcPmcStep{Univariate, D}
+MultivariateAbcPmc{D <: DistanceMeasure} = AbcPmcStep{Multivariate, D}
 
-typealias SingleMeasureAbcPmc{P <: ParticleDimension} AbcPmcStep{P, SingleMeasure}
-typealias MultiMeasureAbcPmc{P <: ParticleDimension} AbcPmcStep{P, MultiMeasure}
+SingleMeasureAbcPmc{P <: ParticleDimension} = AbcPmcStep{P, SingleMeasure}
+MultiMeasureAbcPmc{P <: ParticleDimension} = AbcPmcStep{P, MultiMeasure}
 
 #Single parameter and single distance measure
 type USAbcPmc{T <: Number, G <: Real} <: AbcPmcStep{Univariate, SingleMeasure}
