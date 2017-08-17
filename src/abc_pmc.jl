@@ -28,7 +28,7 @@ function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{
     end
     priorDensity = density_prior.(newParticles)
     newWeights = priorDensity ./ samplingDensity
-    return StatsBase.Weights(newWeights ./ sum(newWeights))
+    return StatsBase.AnalyticWeights(newWeights ./ sum(newWeights))
 end
 
 function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Array{T, 2},
@@ -50,7 +50,7 @@ function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Arra
         end
         newWeights[ii] = density_prior(newParticles[ii, :]) / samplingDensity
     end
-    return StatsBase.Weights(newWeights ./ sum(newWeights))
+    return StatsBase.AnalyticWeights(newWeights ./ sum(newWeights))
 end
 
 """
@@ -124,7 +124,7 @@ function pmc_start(summaryStatistics::Any,
     =#
 
     ##Return result
-    weights = StatsBase.Weights(fill(1.0 / nparticles, nparticles))
+    weights = StatsBase.AnalyticWeights(fill(1.0 / nparticles, nparticles))
     nsampled = fill(floor(Int64, ninitial / nparticles), nparticles)
     return AbcPmc(particles, distances, weights, acceptbw, nsampled)
 end
