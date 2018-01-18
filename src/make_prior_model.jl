@@ -13,20 +13,20 @@ function make_sample_prior{D <: Distributions.Distribution}(distr::Array{D, 1})
     end
 end
 
-function make_sample_prior{T <: Tuple, D <: DataType}(param::T, distr::D)
+function make_sample_prior{T <: Tuple, D <: UnionAll}(param::T, distr::D)
     return function sample_prior()
         return rand(distr(param...))
     end
 end
 
-function make_sample_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, distr::D)
+function make_sample_prior{T <: Tuple, D <: UnionAll}(param::Array{T, 1}, distr::D)
     d = [distr(p...) for p in param]
     return function sample_prior()
         return rand.(d)
     end
 end
 
-function make_sample_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, distr::Array{D, 1})
+function make_sample_prior{T <: Tuple, D <: UnionAll}(param::Array{T, 1}, distr::Array{D, 1})
     dA = [d(p...) for (p, d) in zip(param, distr)]
     return function sample_prior()
         return rand.(dA)
@@ -63,17 +63,17 @@ function make_model_prior{D <: Distributions.Distribution}(d::Array{D, 1})
     return make_sample_prior(d), make_density_prior(d)
 end
 
-function make_model_prior{T <: Tuple, D <: DataType}(param::T, distr::D)
+function make_model_prior{T <: Tuple, D <: UnionAll}(param::T, distr::D)
     d = distr(param...)
     return make_sample_prior(d), make_density_prior(d)
 end
 
-function make_model_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, distr::D)
+function make_model_prior{T <: Tuple, D <: UnionAll}(param::Array{T, 1}, distr::D)
     dA = [distr(p...) for p in param]
     return make_sample_prior(dA), make_density_prior(dA)
 end
 
-function make_model_prior{T <: Tuple, D <: DataType}(param::Array{T, 1}, d::Array{D, 1})
+function make_model_prior{T <: Tuple, D <: UnionAll}(param::Array{T, 1}, d::Array{D, 1})
     dA = [d(p...) for (p, d) in zip(param, distr)]
     return make_sample_prior(dA), make_density_prior(dA)
 end

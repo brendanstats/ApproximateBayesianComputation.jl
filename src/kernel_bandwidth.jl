@@ -5,14 +5,17 @@ deviation on each set of particles individually
 `wstd(x, w)`
 `wstd(A, w)`
 """
-function weightedstd{A <: UnivariateAbcPmc}(abcpmc::A)
-    return std(abcpmc.particles, abcpmc.weights, corrected = true)
+function weightedstd{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 1}, w::W)
+    return std(x, w, corrected = true)
 end
 
-function weightedstd{A <: MultivariateAbcPmc}(abcpmc::A)
-    return vec(std(abcpmc.particles, abcpmc.weights, 1, corrected = true))
+function weightedstd{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 2}, w::W)
+    return vec(std(x, w, 1, corrected = true))
 end
 
+function weightedstd{A <: AbcPmcStep}(abcpmc::A)
+    return weightedstd(abcpmc.particles, abcpmc.weights)
+end
 
 """
 Function
@@ -27,10 +30,15 @@ case returns a vector of length d.
 # Value
 transition kernel variance, 2 * var(particles).  Calculated variance within particle types.
 """
-function weightedstd2{A <: UnivariateAbcPmc}(abcpmc::A)
-    return sqrt(2) * std(abcpmc.particles, abcpmc.weights, corrected = true)
+
+function weightedstd2{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 1}, w::W)
+    return sqrt(2.0) * std(x, w, corrected = true)
 end
 
-function weightedstd2{A <: MultivariateAbcPmc}(abcpmc::A)
-    return sqrt(2) .* vec(std(abcpmc.particles, abcpmc.weights, 1, corrected = true))
+function weightedstd2{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 2}, w::W)
+    return sqrt(2.0) .* vec(std(x, w, 1, corrected = true))
+end
+
+function weightedstd2{A <: AbcPmcStep}(abcpmc::A)
+    return weightedstd2(abcpmc.particles, abcpmc.weights)
 end

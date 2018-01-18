@@ -9,25 +9,33 @@ Function to shrink acceptbw by weighted quantile of previously accepted distance
 # Value
 acceptbw acceptance acceptbws
 """
+function quantile_acceptbw(d::Array{<:AbstractFloat, 1}, w::StatsBase.AnalyticWeights, q::AbstractFloat)
+    return StatsBase.quantile(d, w, q)
+end
+
 function quantile_acceptbw{A <: SingleMeasureAbcPmc}(abcpmc::A, q::Float64)
     return StatsBase.quantile(abcpmc.distances, abcpmc.weights, q)
 end
 
-function independentquantile_acceptbw{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
-    m = size(abcpmc.distances, 2)
+function independentquantile_acceptbw(d::Array{<:AbstractFloat, 2}, w::StatsBase.AnalyticWeights, q::AbstractFloat)
+    m = size(d, 2)
     acceptbws = Array{Float64}(m)
     for jj in 1:m
-        acceptbws[jj] = quantile(abcpmc.distances[:, jj], abcpmc.weights, q)
+        acceptbws[jj] = quantile(d[:, jj], w, q)
     end
     return acceptbws
 end
 
+function independentquantile_acceptbw{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
+    return independentquantile_acceptbw(abcpmc.distances, abcpmc.weights, q)
+end
+
+function jointquantile_acceptbw(d::Array{<:AbstractFloat, 2}, w::StatsBase.AnalyticWeights, q::AbstractFloat)
+    m = size(d, 2)
+    return independentquantile_acceptbw(d, w, 1.0 - (1.0 - q) / m)
+end
+
 function jointquantile_acceptbw{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
     m = size(abcpmc.distances, 2)
-    adjq = 1.0 - (1.0 - q) / m
-    acceptbws = Array{Float64}(m)
-    for jj in 1:m
-        acceptbws[jj] = quantile(abcpmc.distances[:, jj], abcpmc.weights, adjq)
-    end
-    return acceptbws
+    return independentquantile_acceptbw(abcpmc, 1.0 - (1.0 - q) / m)
 end

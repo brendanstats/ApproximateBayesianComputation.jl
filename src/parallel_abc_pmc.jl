@@ -162,7 +162,7 @@ function ppmc_start(summaryStatistics::Any,
     end
 
     ##Return result
-    weights = StatsBase.WeightVec(fill(1.0 / nparticles, nparticles))
+    weights = StatsBase.AnalyticWeights(fill(1.0 / nparticles, nparticles))
     nsampled = fill(floor(Int64, ninitial / nparticles), nparticles)
     return AbcPmc(particles, distances, weights, threshold, nsampled)
 end
@@ -292,7 +292,7 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
     if log
         stepTime = now() - startTime
         totalTime = stepTime
-        steplog(logFile, 1, totalTime, stepTime, results[1].threshold, ninitial)
+        steplog(logFile, 1, totalTime, stepTime, results[1].acceptbw, ninitial)
     end
     
     #Subsequent steps
@@ -312,7 +312,7 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
         if log
             stepTime = now() - startTime - totalTime
             totalTime += stepTime
-            steplog(logFile, ii, totalTime, stepTime, results[ii].threshold, sum(results[ii].nsampled))
+            steplog(logFile, ii, totalTime, stepTime, results[ii].acceptbw, sum(results[ii].nsampled))
         end
     end
     return results

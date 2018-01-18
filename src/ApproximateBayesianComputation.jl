@@ -37,7 +37,7 @@ export make_sample_prior, make_density_prior, make_model_prior
 export sample_particle_distance, ppmc_start, ppmc_step, pabc_pmc
 export pabc_standard, find_particle
 export totalsamples_thresholds
-export perm_distance, sumrank_distance, maxrank_distance, normrank_distance
+export perm_distance, sumrank_distance, maxrank_distance, normrank_distance, minarea_distance
 export quantile_acceptbw, independentquantile_acceptbw, jointquantile_acceptbw
 export duration_to_string
 

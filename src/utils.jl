@@ -2,21 +2,21 @@
 Converts a Base.Dates.XX format into a string in HH:MM:SS format.
 """
 function duration_to_string(duration::Base.Dates.Hour)
-    duration = convert(Int64, duration)
+    duration = Dates.value(duration)
     return string(duration)
 end
 
 function duration_to_string(duration::Base.Dates.Minute)
-    duration = convert(Int64, duration)
+    duration = Dates.value(duration)
     minutes = duration % 60
     hours = (duration - minutes) / 60
-    minutes = convert(Int64, minutes)
-    hours = convert(Int64, hours)
+    minutes = Dates.value(minutes)
+    hours = Dates.value(hours)
     return string(hours, ":", minutes)
 end
 
 function duration_to_string(duration::Base.Dates.Second)
-    duration = convert(Int64, duration)
+    duration = Dates.value(duration)
     seconds = duration % 60
     duration = (duration - seconds) / 60
     minutes = duration % 60
@@ -28,7 +28,7 @@ function duration_to_string(duration::Base.Dates.Second)
 end
 
 function duration_to_string(duration::Base.Dates.Millisecond)
-    duration = convert(Int64, duration)
+    duration = Dates.value(duration)
     duration = floor(duration / 1000)
     seconds = duration % 60
     duration = (duration - seconds) / 60

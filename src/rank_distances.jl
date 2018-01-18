@@ -98,7 +98,7 @@ function minarea_distance{G <: Real}(x::Array{G, 1}, y::Array{G, 1}, N::Integer)
     
     xdist = x[permx[N:end]]
     ydist = zeros(xdist)
-    ydist[1] = y[permy[ymaxrank]]
+    #ydist[1] = y[permy[ymaxrank]]
     for (ii, idx) in enumerate(permx[N:end])
         if ranky[idx] < ymaxrank
             yranks[ranky[idx]] = true
