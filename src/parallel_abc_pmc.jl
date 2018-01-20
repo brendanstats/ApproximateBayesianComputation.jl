@@ -284,8 +284,8 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
                                   verbose)]
     ##Save results
     if verbose println("Saving Step...") end
-    if save JLD.@save saveFile results end
-
+    if save JLD.@save saveFile summaryStatistics results end
+    
     ##Print to log file    
     if verbose println(string("Step ", 1, " Complete")) end
 
@@ -297,6 +297,55 @@ function pabc_pmc(summaryStatistics::Any, nsteps::Int64,
     
     #Subsequent steps
     for ii in 2:nsteps
+        push!(results, ppmc_step(results[ii - 1], summaryStatistics, nparticles,
+                                kernel_bandwidth, shrink_threshold, sample_kernel,
+                                forward_model, compute_distance, density_kernel,
+                                density_prior, verbose))
+
+        ##Save results
+        if verbose println("Saving Step...") end
+        if save JLD.@save saveFile results end
+
+        #Print to log file
+        if verbose println(string("Step ", ii, " Complete")) end
+
+        if log
+            stepTime = now() - startTime - totalTime
+            totalTime += stepTime
+            steplog(logFile, ii, totalTime, stepTime, results[ii].acceptbw, sum(results[ii].nsampled))
+        end
+    end
+    return results
+end
+
+function pabc_pmc_warmstart(nsteps::Int64, nparticles::Int64,
+                            sample_prior::Function, density_prior::Function,
+                            sample_kernel::Function, density_kernel::Function,
+                            forward_model::Function, compute_distance::Function,
+                            kernel_bandwidth::Function, shrink_threshold::Function;
+                            verbose::Bool = true,
+                            log::Bool = true, logFile::String = "log.txt",
+                            save::Bool = true, saveFile::String = "results.jld")
+
+    ##Print to log file    
+    if verbose println("Resuming algorithm...") end
+
+    ##Write initial information is running log file
+    if log
+        startTime = now()
+    end
+    
+    ##Save results
+    summaryStatistics = load(saveFile, "summaryStatistics")
+    results = load(saveFile, "results")
+
+    ##Check Number of steps
+    if nsteps <= length(results)
+        error("$nsteps alreadty complete")
+    end
+    
+    #Subsequent steps
+    for ii in length(results) + 1:nsteps
         push!(results, ppmc_step(results[ii - 1], summaryStatistics, nparticles,
                                 kernel_bandwidth, shrink_threshold, sample_kernel,
                                 forward_model, compute_distance, density_kernel,
