@@ -322,7 +322,7 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
 
         ##Save results
         if verbose println("Saving Step...") end
-        if save JLD.@save saveFile results end
+        if save JLD.@save saveFile summaryStatistics results end
 
         #Print to log file
         if verbose println(string("Step ", ii, " Complete")) end
@@ -353,11 +353,12 @@ function abc_pmc_warmstart(nsteps::Int64, nparticles::Int64,
     ##Write initial information is running log file
     if log
         startTime = now()
+        totalTime = startTime - now()
     end
 
     ##Load results
-    summaryStatistics = load(saveFile, "summaryStatistics")
-    results = load(saveFile, "results")
+    summaryStatistics = JLD.load(saveFile, "summaryStatistics")
+    results = JLD.load(saveFile, "results")
 
     ##Check Number of steps
     if nsteps <= length(results)
