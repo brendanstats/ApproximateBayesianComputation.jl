@@ -26,7 +26,7 @@ export ParticleDimension,
     MSAbcPmc,
     MMAbcPmc,
     AbcPmc
-export kernel_weights, pmc_start, pmc_step, abc_pmc
+export kernel_weights, pmc_start, pmc_step, abc_pmc, abc_pmc_warmstart
 export abc_standard, ABCResult, abc_standard1D, abc_standardMultiD
 export boxcar_accept, gaussian_accept
 export maxdist_bandwidth, gaussianprob_bandwidth
@@ -35,7 +35,7 @@ export make_normal_kernel, make_jointnormal_kernel, make_truncatednormal_kernel,
     make_joint_kernel
 export make_sample_prior, make_density_prior, make_model_prior
 export sample_particle_distance, ppmc_start, ppmc_step, pabc_pmc
-export pabc_standard, find_particle
+export pabc_standard, find_particle, pabc_pmc_warmstart
 export totalsamples_thresholds
 export perm_distance, sumrank_distance, maxrank_distance, normrank_distance, minarea_distance
 export quantile_acceptbw, independentquantile_acceptbw, jointquantile_acceptbw
