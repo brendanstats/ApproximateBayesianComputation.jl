@@ -16,13 +16,13 @@ end
 """
 Standard ABC algorithm for univariate parameter of interest
 """
-function abc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
+function abc_standard1D(T::Type, summaryStatistics::Any,
                                    N::Int64,
                                    acceptbw::G,
                                    sample_prior::Function,
                                    forward_model::Function,
                                    compute_distance::Function,
-                                   accept_reject::Function)
+                                   accept_reject::Function) where G <: Real
     #Allocate variables
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N)
@@ -51,13 +51,13 @@ function abc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
     return ABCResult(acceptedDraws, acceptedDistances, acceptbw, nsampled)
 end
 
-function abc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
+function abc_standard1D(T::Type, summaryStatistics::Any,
                                    N::Int64,
                                    acceptbw::Array{G, 1},
                                    sample_prior::Function,
                                    forward_model::Function,
                                    compute_distance::Function,
-                                   accept_reject::Function)
+                                   accept_reject::Function) where G <: Real
 
     #Allocate variables
     acceptedDraws = Array{T}(N)
@@ -90,14 +90,14 @@ end
 """
 Standard ABC algorithm for multivariate parameter of interest
 """
-function abc_standardMultiD{G <: Real}(T::Type, summaryStatistics::Any,
+function abc_standardMultiD(T::Type, summaryStatistics::Any,
                                        N::Int64,
                                        d::Int64,
                                        acceptbw::G,
                                        sample_prior::Function,
                                        forward_model::Function,
                                        compute_distance::Function,
-                                       accept_reject::Function)
+                                       accept_reject::Function) where G <: Real
 
     #Allocate variables
     acceptedDraws = Array{T}(N, d)
@@ -127,14 +127,14 @@ function abc_standardMultiD{G <: Real}(T::Type, summaryStatistics::Any,
     return ABCResult(acceptedDraws, acceptedDistances, acceptbw, nsampled)
 end
 
-function abc_standardMultiD{G <: Real}(T::Type, summaryStatistics::Any,
+function abc_standardMultiD(T::Type, summaryStatistics::Any,
                                        N::Int64,
                                        d::Int64,
                                        acceptbw::Array{G, 1},
                                        sample_prior::Function,
                                        forward_model::Function,
                                        compute_distance::Function,
-                                       accept_reject::Function)
+                                       accept_reject::Function) where G <: Real
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N, length(acceptbw))
     accepted = 0
@@ -195,13 +195,13 @@ end
 result = abc_standard(mean(data), 200, 0.05, sample_prior, forward_model, compute_distance, boxcar_accept)
 ```
 """
-function abc_standard{G <: Real}(summaryStatistics::Any,
+function abc_standard(summaryStatistics::Any,
                                  N::Int64,
                                  acceptbw::Union{G, Array{G, 1}},
                                  sample_prior::Function,
                                  forward_model::Function,
                                  compute_distance::Function;
-                                 accept_reject::Function = boxcar_accept)
+                                 accept_reject::Function = boxcar_accept) where G <: Real
     proposal = sample_prior()
     if typeof(proposal) <: Array
         return abc_standardMultiD(eltype(proposal), summaryStatistics, N, length(proposal), acceptbw, sample_prior, forward_model, compute_distance, accept_reject)

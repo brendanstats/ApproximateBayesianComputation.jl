@@ -2,11 +2,11 @@
 Identical to `identity()` used for 1-d distances that do not need to be transformed
 before being sorted
 """
-function identiy_distance{G <: Real}(distances::Array{G, 1})
+function identiy_distance(distances::Array{G, 1}) where G <: Real
     return identity(distances)
 end
 
-function identiy_distance{G <: Real}(distances::Array{G, 2})
+function identiy_distance(distances::Array{G, 2}) where G <: Real
     return identity(distances)
 end
 
@@ -23,7 +23,7 @@ sum from smallest to largest
 # Value
 permutation of indicies so such that distances are ordered from smallest to largest
 """
-function sumrank_distance{G <: Real}(distances::Array{G, 2})
+function sumrank_distance(distances::Array{G, 2}) where G <: Real
     n, m = size(distances)
     rankArray = Array{Float64}(n, m)
     for jj in 1:m
@@ -50,7 +50,7 @@ Vector containing the maximum rank across each row
 `distances = rand(10,3)`
 `maxrank_distance(distances)`
 """
-function maxrank_distance{G <: Real}(distances::Array{G, 2})
+function maxrank_distance(distances::Array{G, 2}) where G <: Real
     n, m = size(distances)
     rankArray = Array{Float64}(n, m)
     for jj in 1:m
@@ -74,7 +74,7 @@ Vector containing sum across rows of normalized distances
 `distances = rand(10,3)`
 `maxrank_distance(distances)`
 """
-function normrank_distance{G <: Real}(distances::Array{G, 2})
+function normrank_distance(distances::Array{G, 2}) where G <: Real
     distmin = minimum(distances, 1)
     diststd = std(distances, 1)
     scaledDistances = (distances .- distmin) ./ diststd
@@ -85,7 +85,7 @@ end
 """
 Efficiently find the points across two distance metrics with exactly N entries <= both
 """
-function minarea_distance{G <: Real}(x::Array{G, 1}, y::Array{G, 1}, N::Integer)
+function minarea_distance(x::Array{G, 1}, y::Array{G, 1}, N::Integer) where G <: Real
     permx = sortperm(x)
     rankx = invperm(permx)
     permy = sortperm(y)

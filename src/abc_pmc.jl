@@ -13,11 +13,11 @@ Function to calculate weights for new particles
 # Value
 weights for new particles
 """
-function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{T, 1},
-                                                            previousStep::A,
-                                                            kernelbw::Float64,
-                                                            density_kernel::Function,
-                                                            density_prior::Function)
+function kernel_weights(newParticles::Array{T, 1},
+                        previousStep::A,
+                        kernelbw::Float64,
+                        density_kernel::Function,
+                        density_prior::Function) where {T <: Number, A <: UnivariateAbcPmc}
     if length(newParticles) != length(previousStep.particles)
         error("Length of new particles and old particles must match")
     end
@@ -31,11 +31,11 @@ function kernel_weights{T <: Number, A <: UnivariateAbcPmc}(newParticles::Array{
     return StatsBase.AnalyticWeights(newWeights ./ sum(newWeights))
 end
 
-function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Array{T, 2},
-                                                              previousStep::A,
-                                                              kernelbw::Array{Float64, 1},
-                                                              density_kernel::Function,
-                                                              density_prior::Function)
+function kernel_weights(newParticles::Array{T, 2},
+                        previousStep::A,
+                        kernelbw::Array{Float64, 1},
+                        density_kernel::Function,
+                        density_prior::Function) where {T <: Number, A <: MultivariateAbcPmc}
     if size(newParticles) != size(previousStep.particles)
         error("Length of new particles and old particles must match")
     end
@@ -45,8 +45,8 @@ function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Arra
         samplingDensity = 0.0
         for (jj, w) in enumerate(previousStep.weights.values)
             samplingDensity += density_kernel(newParticles[ii, :],
-                                                  previousStep.particles[jj, :],
-                                                  kernelbw) * w
+                                              previousStep.particles[jj, :],
+                                              kernelbw) * w
         end
         newWeights[ii] = density_prior(newParticles[ii, :]) / samplingDensity
     end
@@ -54,8 +54,8 @@ function kernel_weights{T <: Number, A <: MultivariateAbcPmc}(newParticles::Arra
 end
 
 """
-Initialize ABC PMC Algorithm
-"""
+    Initialize ABC PMC Algorithm
+    """
 function pmc_start(summaryStatistics::Any,
                    nparticles::Int64,
                    ninitial::Int64,
@@ -109,17 +109,17 @@ function pmc_start(summaryStatistics::Any,
     distances = subset(distances, idxs)
     #=
     if typeof(proposal) <: Array
-        particles = particles[idxs, :]
+    particles = particles[idxs, :]
     else
-        particles = particles[idxs]
+    particles = particles[idxs]
     end
 
     if typeof(dist) <: Array
-        distances = distances[idxs, :]
-        acceptbw = vec(maximum(distances, 1))
+    distances = distances[idxs, :]
+    acceptbw = vec(maximum(distances, 1))
     else
-        distances = distances[idxs]
-        acceptbw = maximum(distances)
+    distances = distances[idxs]
+    acceptbw = maximum(distances)
     end
     =#
 
@@ -130,35 +130,35 @@ function pmc_start(summaryStatistics::Any,
 end
 
 """
-Function to new step in ABC Population Monte Carlo Algorithm
-    
-# Arguments
-* `previousStep::ABCPMCStep` object containing information on previous step
-* `shrink_acceptbw::Function` rule for computing reduced acceptance acceptbw
-* `transition_kernel::Function` transition kernel for adding noise to previously
- accepted parameter values
-* `forward_model::Function` simulates new data given parameter value
-* `compute_distance::Function` calculates a distance measure between output of
- `forawrd_model` and supplied summary statistics
-* `density_kernel::Function` density value for transition kernel returning
-likelihood for new parameter values given old parameter values
-* `density_prior::Function` evaluates density of parameter value for prior function
-* `verbose::Bool = true` default value is true, should phase of step be reported
-# Value
-ABCPMCStep object containing new posterior distribution, parameters and weights, as well
-as computed distances, total number of parameters sampled, and acceptance acceptbw that
-was used.
-"""
-function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any,
-                                   nparticles::Int64, kernel_bandwidth::Function,
-                                   shrink_acceptbw::Function,
-                                   sample_kernel::Function,
-                                   forward_model::Function,
-                                   compute_distance::Function,
-                                   density_kernel::Function,
-                                   density_prior::Function,
-                                   accept_reject::Function,
-                                   verbose::Bool = true)
+    Function to new step in ABC Population Monte Carlo Algorithm
+        
+    # Arguments
+    * `previousStep::ABCPMCStep` object containing information on previous step
+    * `shrink_acceptbw::Function` rule for computing reduced acceptance acceptbw
+    * `transition_kernel::Function` transition kernel for adding noise to previously
+     accepted parameter values
+    * `forward_model::Function` simulates new data given parameter value
+    * `compute_distance::Function` calculates a distance measure between output of
+     `forawrd_model` and supplied summary statistics
+    * `density_kernel::Function` density value for transition kernel returning
+    likelihood for new parameter values given old parameter values
+    * `density_prior::Function` evaluates density of parameter value for prior function
+    * `verbose::Bool = true` default value is true, should phase of step be reported
+    # Value
+    ABCPMCStep object containing new posterior distribution, parameters and weights, as well
+    as computed distances, total number of parameters sampled, and acceptance acceptbw that
+    was used.
+    """
+function pmc_step(previousStep::A, summaryStatistics::Any,
+                  nparticles::Int64, kernel_bandwidth::Function,
+                  shrink_acceptbw::Function,
+                  sample_kernel::Function,
+                  forward_model::Function,
+                  compute_distance::Function,
+                  density_kernel::Function,
+                  density_prior::Function,
+                  accept_reject::Function,
+                  verbose::Bool = true) where A <: AbcPmcStep
     
     #Allocate variables
     newParticles = zeros(previousStep.particles)
@@ -205,8 +205,8 @@ function pmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any,
 end
 
 """
-Formatting for logging run setup
-"""
+    Formatting for logging run setup
+    """
 function initlog(filename::String, startTime::DateTime, ninitial::Int64, nparticles::Int64, nsteps::Int64)
     logfile = open(filename, "w")
     write(logfile, "Run Info\n")
@@ -221,30 +221,30 @@ function initlog(filename::String, startTime::DateTime, ninitial::Int64, npartic
 end
 
 """
-Formatting for logging step info
-"""
-function steplog{G <: AbstractFloat}(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepacceptbw::G, nsampled::Int64)
+    Formatting for logging step info
+    """
+function steplog(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepacceptbw::G, nsampled::Int64) where G <: AbstractFloat
     logfile = open(filename, "a")
-        write(logfile, string("Step ", nstep, " Info\n"))
-        write(logfile, "————————————————————","\n")
-        write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
-        write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
-        write(logfile, string("Acceptbw: ", stepacceptbw, "\n"))
-        write(logfile, string("Particles Sampled: ", nsampled, "\n"))
-        write(logfile, "————————————————————","\n\n")
+    write(logfile, string("Step ", nstep, " Info\n"))
+    write(logfile, "————————————————————","\n")
+    write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
+    write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
+    write(logfile, string("Acceptbw: ", stepacceptbw, "\n"))
+    write(logfile, string("Particles Sampled: ", nsampled, "\n"))
+    write(logfile, "————————————————————","\n\n")
     close(logfile)
     nothing
 end
 
-function steplog{G <: AbstractFloat}(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepacceptbw::Array{G, 1}, nsampled::Int64)
+function steplog(filename::String, nstep::Int64, totalTime::Base.Dates.Millisecond, stepTime::Base.Dates.Millisecond, stepacceptbw::Array{G, 1}, nsampled::Int64) where G <: AbstractFloat
     logfile = open(filename, "a")
-        write(logfile, string("Step ", nstep, " Info\n"))
-        write(logfile, "————————————————————","\n")
-        write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
-        write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
-        write(logfile, string("Acceptbw: ", stepacceptbw, "\n"))
-        write(logfile, string("Particles Sampled: ", nsampled, "\n"))
-        write(logfile, "————————————————————","\n\n")
+    write(logfile, string("Step ", nstep, " Info\n"))
+    write(logfile, "————————————————————","\n")
+    write(logfile, string("Total Time: ", duration_to_string(totalTime), "\n"))
+    write(logfile, string("Step Time: ", duration_to_string(stepTime), "\n"))
+    write(logfile, string("Acceptbw: ", stepacceptbw, "\n"))
+    write(logfile, string("Particles Sampled: ", nsampled, "\n"))
+    write(logfile, "————————————————————","\n\n")
     close(logfile)
     nothing
 end
@@ -261,8 +261,7 @@ Population Monte Carlo Approximate Bayesian Computation Algorithm
 * `density_prior::Function` pdf of prior
 * `compute_distance::Function` compute distance metric between output of
   `forward_model` and provided summary statistics
-* `forward_model::Function` function to simulate summary statistics according to new
-parameter value
+* `forward_model::Function` function to simulate summary statistics according to new parameter value
 * `transition_kernel::Function` transition kernel or "noise" function applied to particles
 * `density_kernel::Function` pdf functions for transition kernel
 * `rank_distances::Function` method for ranking particles based on computed distances and
@@ -296,10 +295,10 @@ function abc_pmc(summaryStatistics::Any, nsteps::Int64,
 
     ##Run first step
     results = [pmc_start(summaryStatistics,
-                                  nparticles, ninitial,
-                                  sample_prior, forward_model,
-                                  compute_distance, rank_distances,
-                                  initial_acceptbw, verbose)]
+                         nparticles, ninitial,
+                         sample_prior, forward_model,
+                         compute_distance, rank_distances,
+                         initial_acceptbw, verbose)]
     ##Save results
     if verbose println("Saving Step...") end
     if save JLD.@save saveFile summaryStatistics results end

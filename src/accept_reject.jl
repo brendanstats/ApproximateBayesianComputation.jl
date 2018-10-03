@@ -1,11 +1,11 @@
 """
 return true / false based on hard thresholding of magnitudes above bandwidth
 """
-function boxcar_accept{G <: Real}(proposalDistance::G, bandwidth::G)
+function boxcar_accept(proposalDistance::G, bandwidth::G) where G <: Real
     return abs(proposalDistance) < bandwidth
 end
 
-function boxcar_accept{G <: Real}(proposalDistance::Array{G, 1}, bandwidth::Array{G, 1})
+function boxcar_accept(proposalDistance::Array{G, 1}, bandwidth::Array{G, 1}) where G <: Real
     for (dist, bw) in zip(proposalDistance, bandwidth)
         if dist >= bw
             return false
@@ -17,12 +17,12 @@ end
 """
 return true / false based on gaussian kernel acceptance probability
 """
-function gaussian_accept{G <: Real}(proposalDistance::G, bandwidth::G)
+function gaussian_accept(proposalDistance::G, bandwidth::G) where G <: Real
     scaledDistane = proposalDistance / bandwidth
     return rand() < exp(-0.5 * scaledDistane ^ 2)
 end
 
-function gaussian_accept{G <: Real}(proposalDistance::Array{G, 1}, bandwidth::Array{G, 1})
+function gaussian_accept(proposalDistance::Array{G, 1}, bandwidth::Array{G, 1}) where G <: Real
     for (dist, bw) in zip(proposalDistance, bandwidth)
         scaledDistane = dist / bw
         if rand() >= exp(-0.5 * scaledDistane ^ 2)

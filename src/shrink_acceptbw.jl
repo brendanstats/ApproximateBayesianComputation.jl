@@ -26,7 +26,7 @@ function independentquantile_acceptbw(d::Array{<:AbstractFloat, 2}, w::StatsBase
     return acceptbws
 end
 
-function independentquantile_acceptbw{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
+function independentquantile_acceptbw(abcpmc::A, q::Float64) where A <: MultiMeasureAbcPmc
     return independentquantile_acceptbw(abcpmc.distances, abcpmc.weights, q)
 end
 
@@ -35,7 +35,7 @@ function jointquantile_acceptbw(d::Array{<:AbstractFloat, 2}, w::StatsBase.Analy
     return independentquantile_acceptbw(d, w, 1.0 - (1.0 - q) / m)
 end
 
-function jointquantile_acceptbw{A <: MultiMeasureAbcPmc}(abcpmc::A, q::Float64)
+function jointquantile_acceptbw(abcpmc::A, q::Float64) where A <: MultiMeasureAbcPmc
     m = size(abcpmc.distances, 2)
     return independentquantile_acceptbw(abcpmc, 1.0 - (1.0 - q) / m)
 end

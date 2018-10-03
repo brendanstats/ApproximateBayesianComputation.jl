@@ -7,7 +7,7 @@ function sample_particle_distance(summaryStatistics::Any, sample_prior::Function
     return proposal, compute_distance(simulatedData, summaryStatistics)
 end
 
-function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelbandwidth::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+function find_particle(summaryStatistics::Any, previousStep::A, threshold::G, kernelbandwidth::G, sample_kernel::Function, forward_model::Function, compute_distance::Function) where {A <: AbcPmcStep, G <: Real}
 
     sampled = 0
     while true
@@ -28,7 +28,7 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
     end
 end
 
-function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelbandwidth::G, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+function find_particle(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelbandwidth::G, sample_kernel::Function, forward_model::Function, compute_distance::Function) where {A <: AbcPmcStep, G <: Real}
 
     sampled = 0
     while true
@@ -49,7 +49,7 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
     end
 end
 
-function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::G, kernelbandwidth::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+function find_particle(summaryStatistics::Any, previousStep::A, threshold::G, kernelbandwidth::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function) where {A <: AbcPmcStep, G <: Real}
 
     sampled = 0
     while true
@@ -70,7 +70,7 @@ function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previ
     end
 end
 
-function find_particle{A <: AbcPmcStep, G <: Real}(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelbandwidth::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function)
+function find_particle(summaryStatistics::Any, previousStep::A, threshold::Array{G, 1}, kernelbandwidth::Array{G, 1}, sample_kernel::Function, forward_model::Function, compute_distance::Function) where {A <: AbcPmcStep, G <: Real}
 
     sampled = 0
     while true
@@ -187,11 +187,11 @@ ABCPMCStep object containing new posterior distribution, parameters and weights,
 as computed distances, total number of parameters sampled, and acceptance threshold that
 was used.
 """
-function ppmc_step{A <: AbcPmcStep}(previousStep::A, summaryStatistics::Any, nparticles::Int64,
+function ppmc_step(previousStep::A, summaryStatistics::Any, nparticles::Int64,
                   kernel_bandwidth::Function, shrink_threshold::Function,
                   sample_kernel::Function, forward_model::Function,
                   compute_distance::Function, density_kernel::Function,
-                  density_prior::Function, verbose::Bool = true)
+                  density_prior::Function, verbose::Bool = true) where A <: AbcPmcStep
     
     #Allocate variables
     newParticles = zeros(previousStep.particles)

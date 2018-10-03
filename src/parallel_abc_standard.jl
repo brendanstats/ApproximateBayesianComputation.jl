@@ -1,11 +1,11 @@
 """
 Run until a single particle has been accepted
 """
-function find_particle{G <: Real}(summaryStatistics::Any,
+function find_particle(summaryStatistics::Any,
                                   threshold::G,
                                   sample_prior::Function,
                                   forward_model::Function,
-                                  compute_distance::Function)
+                                  compute_distance::Function) where G <: Real
     sampled = 0
     while true
         sampled += 1
@@ -22,11 +22,11 @@ function find_particle{G <: Real}(summaryStatistics::Any,
     end
 end
 
-function find_particle{G <: Real}(summaryStatistics::Any,
+function find_particle(summaryStatistics::Any,
                                   threshold::Array{G, 1},
                                   sample_prior::Function,
                                   forward_model::Function,
-                                  compute_distance::Function)
+                                  compute_distance::Function) where G <: Real
     sampled = 0
     while true
         sampled += 1
@@ -46,12 +46,12 @@ end
 """
 Standard ABC algorithm for univariate parameter of interest
 """
-function pabc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
+function pabc_standard1D(T::Type, summaryStatistics::Any,
                                      N::Int64,
                                      threshold::G,
                                      sample_prior::Function,
                                      forward_model::Function,
-                                     compute_distance::Function)
+                                     compute_distance::Function) where G <: Real
     #Allocate variables
     acceptedDraws = Array{T}(N)
     acceptedDistances = Array{G}(N)
@@ -78,12 +78,12 @@ function pabc_standard1D{G <: Real}(T::Type, summaryStatistics::Any,
 end
 
 
-function pabc_standard1D{G <: Number}(T::Type, summaryStatistics::Any,
+function pabc_standard1D(T::Type, summaryStatistics::Any,
                                      N::Int64,
                                      threshold::Array{G, 1},
                                      sample_prior::Function,
                                      forward_model::Function,
-                                     compute_distance::Function)
+                                     compute_distance::Function) where G <: Number
 
     #Allocate variables
     acceptedDraws = Array{T}(N)
@@ -112,13 +112,13 @@ end
 """
 Standard ABC algorithm for multivariate parameter of interest
 """
-function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
+function pabc_standardMultiD(T::Type, summaryStatistics::Any,
                                          N::Int64,
                                          d::Int64,
                                          threshold::G,
                                          sample_prior::Function,
                                          forward_model::Function,
-                                         compute_distance::Function)
+                                         compute_distance::Function) where G <: Number
 
     #Allocate variables
     acceptedDraws = Array{T}(N, d)
@@ -144,13 +144,13 @@ function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
     return ABCResult(acceptedDraws, acceptedDistances, threshold, nsampled)
 end
 
-function pabc_standardMultiD{G <: Number}(T::Type, summaryStatistics::Any,
+function pabc_standardMultiD(T::Type, summaryStatistics::Any,
                                          N::Int64,
                                          d::Int64,
                                          threshold::Array{G, 1},
                                          sample_prior::Function,
                                          forward_model::Function,
-                                         compute_distance::Function)
+                                         compute_distance::Function) where G <: Number
     acceptedDraws = Array{T}(N, d)
     acceptedDistances = Array{G}(N, length(threshold))
     accepted = 0
@@ -208,12 +208,12 @@ end
 result = abc_standard(mean(data), 200, 0.05, sample_prior, forward_model, compute_distance)
 ```
 """
-function pabc_standard{G <: Real}(summaryStatistics::Any,
+function pabc_standard(summaryStatistics::Any,
                                   N::Int64,
                                   threshold::Union{G, Array{G, 1}},
                                   sample_prior::Function,
                                   forward_model::Function,
-                                  compute_distance::Function)
+                                  compute_distance::Function) where G <: Real
 
     proposal = sample_prior()
     if typeof(proposal) <: Array

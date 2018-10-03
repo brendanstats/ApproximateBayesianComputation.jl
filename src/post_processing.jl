@@ -13,7 +13,7 @@
 
 Takes array of AbcPmcStep and returns a tuple `(labels, [samples, acceptbws])` where row `i` corresponds to the `ith` entry of the input Array.  The first column will list the total number of samples drawn in the corresponding step while subsequent columns will list acceptbw information.  In the case of a `MultiMeasureAbcPmc` array labels are given as 'acceptbw1', 'acceptbw2', ...
 """
-function totalsamples_acceptbws{A <: SingleMeasureAbcPmc}(x::Array{A, 1})
+function totalsamples_acceptbws(x::Array{A, 1}) where A <: SingleMeasureAbcPmc
     T = eltype(x[1].acceptbw)
     totalsamples = zeros(T, length(x))
     acceptbws = zeros(T, length(x))
@@ -24,7 +24,7 @@ function totalsamples_acceptbws{A <: SingleMeasureAbcPmc}(x::Array{A, 1})
     return (["samples", "acceptbw"], [cumsum(totalsamples) acceptbws])
 end
 
-function totalsamples_acceptbws{A <: MultiMeasureAbcPmc}(x::Array{A, 1})
+function totalsamples_acceptbws(x::Array{A, 1}) where A <: MultiMeasureAbcPmc
     T = eltype(x[1].acceptbw)
     totalsamples = zeros(T, length(x))
     acceptbws = zeros(T, length(x), length(x[1].acceptbw))
@@ -40,7 +40,7 @@ end
 
 Takes array of AbcPmcStep and returns a tuple `(labels, [step, particles, weights])` where row `step` corresponds to the entry of the input Array.  In the case of a `MultivariateAbcPmc` array labels are given as 'particle1', 'particle2', ....  The last column contains the weights associated with the particles.
 """
-function particles_weights{A <: UnivariateAbcPmc}(x::Array{A, 1})
+function particles_weights(x::Array{A, 1}) where A <: UnivariateAbcPmc
     n = length(x)
     m = length(x[1].particles)
     out = Array{promote_type(eltype(x[1].particles), eltype(x[1].weights), Int64)}(n * m, 3)
@@ -53,7 +53,7 @@ function particles_weights{A <: UnivariateAbcPmc}(x::Array{A, 1})
     return (["step", "particle", "weight"], out)
 end
 
-function particles_weights{A <: MultivariateAbcPmc}(x::Array{A, 1})
+function particles_weights(x::Array{A, 1}) where A <: MultivariateAbcPmc
     n = length(x)
     m, k = size(x[1].particles)
     out = Array{promote_type(eltype(x[1].particles), eltype(x[1].weights), Int64)}(n * m, k + 2)

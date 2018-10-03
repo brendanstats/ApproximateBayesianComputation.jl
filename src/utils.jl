@@ -43,20 +43,20 @@ end
 """
 Returns only the rows (2D) or entries corresponding to the supplied indicies
 """
-function subset{T <: Any, G <: Integer}(A::Array{T, 1}, idxs::Array{G})
+function subset(A::Array{T, 1}, idxs::Array{G}) where {T <: Any, G <: Integer}
     return A[idxs]
 end
 
-function subset!{T <: Any, G <: Integer}(A::Array{T, 1}, idxs::Array{G})
+function subset!(A::Array{T, 1}, idxs::Array{G}) where {T <: Any, G <: Integer}
     A = A[idxs]
     nothing
 end
 
-function subset{T <: Any, G <: Integer}(A::Array{T, 2}, idxs::Array{G})
+function subset(A::Array{T, 2}, idxs::Array{G}) where {T <: Any, G <: Integer}
     return A[idxs, :]
 end
 
-function subset!{T <: Any, G <: Integer}(A::Array{T, 2}, idxs::Array{G})
+function subset!(A::Array{T, 2}, idxs::Array{G}) where {T <: Any, G <: Integer}
     A = A[idxs, :]
     nothing
 end

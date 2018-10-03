@@ -5,15 +5,15 @@ deviation on each set of particles individually
 `wstd(x, w)`
 `wstd(A, w)`
 """
-function weightedstd{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 1}, w::W)
+function weightedstd(x::Array{G, 1}, w::W) where {G <: Real, W <: StatsBase.AnalyticWeights}
     return std(x, w, corrected = true)
 end
 
-function weightedstd{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 2}, w::W)
+function weightedstd(x::Array{G, 2}, w::W) where {G <: Real, W <: StatsBase.AnalyticWeights}
     return vec(std(x, w, 1, corrected = true))
 end
 
-function weightedstd{A <: AbcPmcStep}(abcpmc::A)
+function weightedstd(abcpmc::A) where A <: AbcPmcStep
     return weightedstd(abcpmc.particles, abcpmc.weights)
 end
 
@@ -31,14 +31,14 @@ case returns a vector of length d.
 transition kernel variance, 2 * var(particles).  Calculated variance within particle types.
 """
 
-function weightedstd2{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 1}, w::W)
+function weightedstd2(x::Array{G, 1}, w::W) where {G <: Real, W <: StatsBase.AnalyticWeights}
     return sqrt(2.0) * std(x, w, corrected = true)
 end
 
-function weightedstd2{G <: Real, W <: StatsBase.AnalyticWeights}(x::Array{G, 2}, w::W)
+function weightedstd2(x::Array{G, 2}, w::W) where {G <: Real, W <: StatsBase.AnalyticWeights}
     return sqrt(2.0) .* vec(std(x, w, 1, corrected = true))
 end
 
-function weightedstd2{A <: AbcPmcStep}(abcpmc::A)
+function weightedstd2(abcpmc::A) where A <: AbcPmcStep
     return weightedstd2(abcpmc.particles, abcpmc.weights)
 end
